@@ -1,4 +1,4 @@
-package com.eris.servicehub_backend;
+package com.eris.servicehub;
 
 import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.boot.SpringApplication;
