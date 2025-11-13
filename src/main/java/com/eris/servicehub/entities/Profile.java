@@ -30,6 +30,8 @@ public class Profile {
     @Column(length = 20)
     private String phone;
 
+    private String address;
+
     @Column(name = "date_of_birth")
     private LocalDate dateOfBirth;
 
