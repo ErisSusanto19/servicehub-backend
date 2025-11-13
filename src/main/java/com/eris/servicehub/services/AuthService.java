@@ -10,10 +10,12 @@ import com.eris.servicehub.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class AuthService {
@@ -29,21 +31,34 @@ public class AuthService {
     @Autowired
     private AuthenticationManager authenticationManager;
 
+    @Autowired
+    private JwtService jwtService;
+
     public AuthResponse register(RegisterRequest request) {
 
         Role customerRole = roleRepository.findByName("CUSTOMER")
                 .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
 
-        var user = User.builder()
+        var userEntity = User.builder()
                 .name(request.name())
                 .email(request.email())
                 .password(passwordEncoder.encode(request.password()))
                 .roles(Set.of(customerRole))
                 .build();
 
-        userRepository.save(user);
+        userRepository.save(userEntity);
 
-        return new AuthResponse("dummy-jwt-token-for-now");
+        var userDetails = new org.springframework.security.core.userdetails.User(
+                userEntity.getEmail(),
+                userEntity.getPassword(),
+                userEntity.getRoles().stream()
+                        .map(role -> new SimpleGrantedAuthority(role.getName()))
+                        .collect(Collectors.toList())
+        );
+
+        var jwtToken = jwtService.generateToken(userDetails);
+
+        return new AuthResponse(jwtToken);
     }
 
     public AuthResponse login(LoginRequest request) {
@@ -54,9 +69,19 @@ public class AuthService {
                 )
         );
 
-        var user = userRepository.findByEmail(request.email())
+        var userEntity = userRepository.findByEmail(request.email())
                 .orElseThrow();
 
-        return new AuthResponse("dummy-jwt-token-for-now");
+        var userDetails = new org.springframework.security.core.userdetails.User(
+                userEntity.getEmail(),
+                userEntity.getPassword(),
+                userEntity.getRoles().stream()
+                        .map(role -> new SimpleGrantedAuthority(role.getName()))
+                        .collect(Collectors.toList())
+        );
+
+        var jwtToken = jwtService.generateToken(userDetails);
+
+        return new AuthResponse(jwtToken);
     }
 }
