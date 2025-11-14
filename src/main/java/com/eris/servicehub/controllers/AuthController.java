@@ -4,6 +4,7 @@ import com.eris.servicehub.dtos.auth.AuthResponse;
 import com.eris.servicehub.dtos.auth.LoginRequest;
 import com.eris.servicehub.dtos.auth.RegisterRequest;
 import com.eris.servicehub.services.AuthService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,7 +21,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(
-            @RequestBody RegisterRequest request
+            @Valid @RequestBody RegisterRequest request
     ) {
         AuthResponse response = authService.register(request);
         return ResponseEntity.ok(response);
@@ -28,7 +29,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(
-            @RequestBody LoginRequest request
+            @Valid @RequestBody LoginRequest request
     ) {
         AuthResponse response = authService.login(request);
         return ResponseEntity.ok(response);
