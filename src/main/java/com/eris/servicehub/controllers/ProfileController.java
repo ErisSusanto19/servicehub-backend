@@ -3,7 +3,9 @@ package com.eris.servicehub.controllers;
 import com.eris.servicehub.dtos.common.ApiResponse;
 import com.eris.servicehub.dtos.profile.UpdateProfileRequest;
 import com.eris.servicehub.dtos.profile.UserProfileResponse;
+import com.eris.servicehub.services.ProfileService;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,17 +13,20 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/profile")
 public class ProfileController {
 
+    @Autowired
+    private ProfileService profileService;
+
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<UserProfileResponse>> getMyProfile() {
-        UserProfileResponse dummyData = UserProfileResponse.builder().name("Dummy User").build();
-        return ResponseEntity.ok(ApiResponse.success(dummyData, "Profile retrieved successfully"));
+        UserProfileResponse data = profileService.getMyProfile();
+        return ResponseEntity.ok(ApiResponse.success(data, "Profile retrieved successfully"));
     }
 
     @PutMapping("/me")
     public ResponseEntity<ApiResponse<UserProfileResponse>> updateMyProfile(
             @Valid @RequestBody UpdateProfileRequest request
     ) {
-        UserProfileResponse dummyData = UserProfileResponse.builder().name(request.getName()).build();
-        return ResponseEntity.ok(ApiResponse.success(dummyData, "Profile updated successfully"));
+        UserProfileResponse data = profileService.updateMyProfile(request);
+        return ResponseEntity.ok(ApiResponse.success(data, "Profile updated successfully"));
     }
 }

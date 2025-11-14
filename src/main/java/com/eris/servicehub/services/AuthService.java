@@ -3,6 +3,7 @@ package com.eris.servicehub.services;
 import com.eris.servicehub.dtos.auth.AuthResponse;
 import com.eris.servicehub.dtos.auth.LoginRequest;
 import com.eris.servicehub.dtos.auth.RegisterRequest;
+import com.eris.servicehub.entities.Profile;
 import com.eris.servicehub.entities.Role;
 import com.eris.servicehub.entities.User;
 import com.eris.servicehub.exceptions.ResourceNotFoundException;
@@ -46,6 +47,10 @@ public class AuthService {
                 .password(passwordEncoder.encode(request.password()))
                 .roles(Set.of(customerRole))
                 .build();
+
+        Profile newProfile = new Profile();
+        newProfile.setUser(userEntity);
+        userEntity.setProfile(newProfile);
 
         userRepository.save(userEntity);
 
