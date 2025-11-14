@@ -5,6 +5,7 @@ import com.eris.servicehub.dtos.auth.LoginRequest;
 import com.eris.servicehub.dtos.auth.RegisterRequest;
 import com.eris.servicehub.entities.Role;
 import com.eris.servicehub.entities.User;
+import com.eris.servicehub.exceptions.ResourceNotFoundException;
 import com.eris.servicehub.repositories.RoleRepository;
 import com.eris.servicehub.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +38,7 @@ public class AuthService {
     public AuthResponse register(RegisterRequest request) {
 
         Role customerRole = roleRepository.findByName("CUSTOMER")
-                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+                .orElseThrow(() -> new ResourceNotFoundException("Role not found with name: CUSTOMER"));
 
         var userEntity = User.builder()
                 .name(request.name())
@@ -70,7 +71,7 @@ public class AuthService {
         );
 
         var userEntity = userRepository.findByEmail(request.email())
-                .orElseThrow();
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + request.email()));
 
         var userDetails = new org.springframework.security.core.userdetails.User(
                 userEntity.getEmail(),

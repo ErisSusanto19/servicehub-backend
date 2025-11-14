@@ -3,6 +3,7 @@ package com.eris.servicehub.controllers;
 import com.eris.servicehub.dtos.auth.AuthResponse;
 import com.eris.servicehub.dtos.auth.LoginRequest;
 import com.eris.servicehub.dtos.auth.RegisterRequest;
+import com.eris.servicehub.dtos.common.ApiResponse;
 import com.eris.servicehub.services.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,18 +21,20 @@ public class AuthController {
     private AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(
+    public ResponseEntity<ApiResponse<AuthResponse>> register(
             @Valid @RequestBody RegisterRequest request
     ) {
-        AuthResponse response = authService.register(request);
+        AuthResponse data = authService.register(request);
+        ApiResponse<AuthResponse> response = ApiResponse.success(data, "User registered successfully");
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(
+    public ResponseEntity<ApiResponse<AuthResponse>> login(
             @Valid @RequestBody LoginRequest request
     ) {
-        AuthResponse response = authService.login(request);
+        AuthResponse data = authService.login(request);
+        ApiResponse<AuthResponse> response = ApiResponse.success(data, "Login successful");
         return ResponseEntity.ok(response);
     }
 }
