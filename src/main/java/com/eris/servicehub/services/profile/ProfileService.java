@@ -6,4 +6,5 @@ import com.eris.servicehub.dtos.profile.UserProfileResponse;
 public interface ProfileService {
     UserProfileResponse getMyProfile();
     UserProfileResponse updateMyProfile(UpdateProfileRequest request);
+    UserProfileResponse becomeProvider();
 }

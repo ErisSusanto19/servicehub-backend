@@ -3,8 +3,10 @@ package com.eris.servicehub.services.profile.implementation;
 import com.eris.servicehub.dtos.profile.UpdateProfileRequest;
 import com.eris.servicehub.dtos.profile.UserProfileResponse;
 import com.eris.servicehub.entities.Profile;
+import com.eris.servicehub.entities.Role;
 import com.eris.servicehub.entities.User;
 import com.eris.servicehub.exceptions.ResourceNotFoundException;
+import com.eris.servicehub.repositories.RoleRepository;
 import com.eris.servicehub.repositories.UserRepository;
 import com.eris.servicehub.services.profile.ProfileService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +20,10 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private RoleRepository roleRepository;
+
 
     private User getCurrentUser() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -72,5 +78,20 @@ public class ProfileServiceImpl implements ProfileService {
         User updatedUser = userRepository.save(currentUser);
 
         return mapToUserProfileResponse(updatedUser);
+    }
+
+    @Override
+    @Transactional
+    public UserProfileResponse becomeProvider() {
+        User currentUser = getCurrentUser();
+
+        Role providerRole = roleRepository.findByName("PROVIDER")
+                .orElseThrow(() -> new RuntimeException("Fatal: PROVIDER role not found in database."));
+
+        currentUser.getRoles().add(providerRole);
+
+        userRepository.save(currentUser);
+
+        return mapToUserProfileResponse(currentUser);
     }
 }

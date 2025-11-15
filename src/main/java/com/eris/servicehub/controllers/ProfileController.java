@@ -29,4 +29,10 @@ public class ProfileController {
         UserProfileResponse data = profileService.updateMyProfile(request);
         return ResponseEntity.ok(ApiResponse.success(data, "Profile updated successfully"));
     }
+
+    @PostMapping("/me/become-provider")
+    public ResponseEntity<ApiResponse<UserProfileResponse>> becomeProvider() {
+        UserProfileResponse data = profileService.becomeProvider();
+        return ResponseEntity.ok(ApiResponse.success(data, "User is now a provider"));
+    }
 }
