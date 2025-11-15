@@ -3,7 +3,7 @@ package com.eris.servicehub.controllers;
 import com.eris.servicehub.dtos.common.ApiResponse;
 import com.eris.servicehub.dtos.profile.UpdateProfileRequest;
 import com.eris.servicehub.dtos.profile.UserProfileResponse;
-import com.eris.servicehub.services.ProfileService;
+import com.eris.servicehub.services.profile.ProfileService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
