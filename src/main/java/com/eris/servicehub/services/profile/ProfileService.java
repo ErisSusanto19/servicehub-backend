@@ -1,4 +1,4 @@
-package com.eris.servicehub.services;
+package com.eris.servicehub.services.profile;
 
 import com.eris.servicehub.dtos.profile.UpdateProfileRequest;
 import com.eris.servicehub.dtos.profile.UserProfileResponse;

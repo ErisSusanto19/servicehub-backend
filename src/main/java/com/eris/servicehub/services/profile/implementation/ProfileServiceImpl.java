@@ -1,4 +1,4 @@
-package com.eris.servicehub.services.implementation;
+package com.eris.servicehub.services.profile.implementation;
 
 import com.eris.servicehub.dtos.profile.UpdateProfileRequest;
 import com.eris.servicehub.dtos.profile.UserProfileResponse;
@@ -6,7 +6,7 @@ import com.eris.servicehub.entities.Profile;
 import com.eris.servicehub.entities.User;
 import com.eris.servicehub.exceptions.ResourceNotFoundException;
 import com.eris.servicehub.repositories.UserRepository;
-import com.eris.servicehub.services.ProfileService;
+import com.eris.servicehub.services.profile.ProfileService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
