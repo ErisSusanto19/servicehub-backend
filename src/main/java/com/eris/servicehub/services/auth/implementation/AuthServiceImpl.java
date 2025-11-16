@@ -1,4 +1,4 @@
-package com.eris.servicehub.services;
+package com.eris.servicehub.services.auth.implementation;
 
 import com.eris.servicehub.dtos.auth.AuthResponse;
 import com.eris.servicehub.dtos.auth.LoginRequest;
@@ -9,18 +9,19 @@ import com.eris.servicehub.entities.User;
 import com.eris.servicehub.exceptions.ResourceNotFoundException;
 import com.eris.servicehub.repositories.RoleRepository;
 import com.eris.servicehub.repositories.UserRepository;
+import com.eris.servicehub.services.JwtService;
+import com.eris.servicehub.services.auth.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
 
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Service
-public class AuthService {
+public class AuthServiceImpl implements AuthService {
+
     @Autowired
     private UserRepository userRepository;
 
@@ -36,6 +37,7 @@ public class AuthService {
     @Autowired
     private JwtService jwtService;
 
+    @Override
     public AuthResponse register(RegisterRequest request) {
 
         Role customerRole = roleRepository.findByName("CUSTOMER")
@@ -67,6 +69,7 @@ public class AuthService {
         return new AuthResponse(jwtToken);
     }
 
+    @Override
     public AuthResponse login(LoginRequest request) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
