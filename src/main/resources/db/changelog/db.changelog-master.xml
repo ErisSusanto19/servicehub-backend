@@ -6,7 +6,14 @@
          http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd">
 
     <changeSet id="v001_initial_schema" author="eris">
-        <sqlFile path="sql/V1_Initial_Schema.sql"
+        <sqlFile path="sql/v001_initial_schema.sql"
+                 relativeToChangelogFile="true"
+                 splitStatements="true"
+                 stripComments="true"/>
+    </changeSet>
+
+    <changeSet id="v002_create_category_and_service_tables" author="eris">
+        <sqlFile path="sql/v002_create_category_and_service_tables.sql"
                  relativeToChangelogFile="true"
                  splitStatements="true"
                  stripComments="true"/>
