@@ -1,4 +1,4 @@
-package com.eris.servicehub.services.implementation;
+package com.eris.servicehub.services.user;
 
 import com.eris.servicehub.entities.User;
 import com.eris.servicehub.repositories.UserRepository;
