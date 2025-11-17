@@ -19,4 +19,11 @@
                  stripComments="true"/>
     </changeSet>
 
+    <changeSet id="v003_create_order_tables" author="eris">
+        <sqlFile path="sql/v003_create_order_tables.sql"
+                 relativeToChangelogFile="true"
+                 splitStatements="true"
+                 stripComments="true"/>
+    </changeSet>
+
 </databaseChangeLog>
