@@ -1,6 +1,6 @@
 package com.eris.servicehub.config.filter;
 
-import com.eris.servicehub.services.JwtService;
+import com.eris.servicehub.services.service.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
