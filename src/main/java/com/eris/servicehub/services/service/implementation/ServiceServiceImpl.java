@@ -7,6 +7,7 @@ import com.eris.servicehub.entities.Service;
 import com.eris.servicehub.entities.User;
 import com.eris.servicehub.exceptions.ResourceNotFoundException;
 import com.eris.servicehub.repositories.CategoryRepository;
+import com.eris.servicehub.repositories.ReviewRepository;
 import com.eris.servicehub.repositories.ServiceRepository;
 import com.eris.servicehub.repositories.UserRepository;
 import com.eris.servicehub.services.service.ServiceService;
@@ -26,6 +27,7 @@ public class ServiceServiceImpl implements ServiceService {
     @Autowired private ServiceRepository serviceRepository;
     @Autowired private UserRepository userRepository;
     @Autowired private CategoryRepository categoryRepository;
+    @Autowired private ReviewRepository reviewRepository;
 
     private User getCurrentUser() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -48,11 +50,15 @@ public class ServiceServiceImpl implements ServiceService {
                 .id(service.getCategory().getId())
                 .name(service.getCategory().getName())
                 .build();
+
+        Double averageRating = reviewRepository.findAverageRatingByServiceId(service.getId());
+
         return ServiceResponse.builder()
                 .id(service.getId())
                 .name(service.getName())
                 .description(service.getDescription())
                 .price(service.getPrice())
+                .averageRating(averageRating != null ? averageRating : 0.0)
                 .provider(providerSummary)
                 .category(categorySummary)
                 .build();
