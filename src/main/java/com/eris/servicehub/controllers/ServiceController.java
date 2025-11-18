@@ -32,18 +32,20 @@ public class ServiceController {
     @GetMapping
     public ResponseEntity<ApiResponse<PagedResponse<ServiceResponse>>> getAllServices(
             Pageable pageable,
-            @RequestParam(required = false) UUID categoryId
+            @RequestParam(required = false) UUID categoryId,
+            @RequestParam(required = false, name = "q") String searchQuery
     ) {
-        Page<ServiceResponse> servicePage = serviceService.getAllServices(pageable, categoryId);
-        PagedResponse<ServiceResponse> pagedData = PagedResponse.<ServiceResponse>builder()
-                .content(servicePage.getContent())
-                .pageNumber(servicePage.getNumber())
-                .pageSize(servicePage.getSize())
-                .totalElements(servicePage.getTotalElements())
-                .totalPages(servicePage.getTotalPages())
-                .first(servicePage.isFirst())
-                .last(servicePage.isLast())
-                .build();
+        Page<ServiceResponse> servicePage = serviceService.getAllServices(pageable, categoryId, searchQuery);
+//        PagedResponse<ServiceResponse> pagedData = PagedResponse.<ServiceResponse>builder()
+//                .content(servicePage.getContent())
+//                .pageNumber(servicePage.getNumber())
+//                .pageSize(servicePage.getSize())
+//                .totalElements(servicePage.getTotalElements())
+//                .totalPages(servicePage.getTotalPages())
+//                .first(servicePage.isFirst())
+//                .last(servicePage.isLast())
+//                .build();
+        PagedResponse<ServiceResponse> pagedData = PagedResponse.from(servicePage);
         return ResponseEntity.ok(ApiResponse.success(pagedData, "Services retrieved successfully"));
     }
 

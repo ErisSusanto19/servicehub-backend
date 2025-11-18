@@ -10,14 +10,17 @@ import com.eris.servicehub.repositories.CategoryRepository;
 import com.eris.servicehub.repositories.ReviewRepository;
 import com.eris.servicehub.repositories.ServiceRepository;
 import com.eris.servicehub.repositories.UserRepository;
+import com.eris.servicehub.repositories.specifications.ServiceSpecification;
 import com.eris.servicehub.services.service.ServiceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.UUID;
 
@@ -66,13 +69,19 @@ public class ServiceServiceImpl implements ServiceService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<ServiceResponse> getAllServices(Pageable pageable, UUID categoryId) {
-        Page<Service> servicePage;
+    public Page<ServiceResponse> getAllServices(Pageable pageable, UUID categoryId, String searchQuery) {
+        Specification<Service> spec = Specification.anyOf();
+
         if (categoryId != null) {
-            servicePage = serviceRepository.findByCategoryId(categoryId, pageable);
-        } else {
-            servicePage = serviceRepository.findAll(pageable);
+            spec = spec.and(ServiceSpecification.byCategoryId(categoryId));
         }
+
+        if (StringUtils.hasText(searchQuery)) {
+            spec = spec.and(ServiceSpecification.hasText(searchQuery));
+        }
+
+        Page<Service> servicePage = serviceRepository.findAll(spec, pageable);
+
         return servicePage.map(this::mapToResponse);
     }
 
