@@ -13,6 +13,7 @@ public class ServiceResponse {
     private String name;
     private String description;
     private BigDecimal price;
+    private Double averageRating;
     private ProviderSummary provider;
     private CategorySummary category;
 

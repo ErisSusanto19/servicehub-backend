@@ -26,4 +26,11 @@
                  stripComments="true"/>
     </changeSet>
 
+    <changeSet id="v004_create_review_table" author="eris">
+        <sqlFile path="sql/v004_create_review_table.sql"
+                 relativeToChangelogFile="true"
+                 splitStatements="true"
+                 stripComments="true"/>
+    </changeSet>
+
 </databaseChangeLog>
