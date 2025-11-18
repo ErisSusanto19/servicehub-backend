@@ -2,8 +2,10 @@ package com.eris.servicehub.controllers;
 
 import com.eris.servicehub.dtos.common.ApiResponse;
 import com.eris.servicehub.dtos.common.PagedResponse;
+import com.eris.servicehub.dtos.review.ReviewResponse;
 import com.eris.servicehub.dtos.service.ServiceRequest;
 import com.eris.servicehub.dtos.service.ServiceResponse;
+import com.eris.servicehub.services.review.ReviewService;
 import com.eris.servicehub.services.service.ServiceService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -22,6 +25,9 @@ public class ServiceController {
 
     @Autowired
     private ServiceService serviceService;
+
+    @Autowired
+    private ReviewService reviewService;
 
     @GetMapping
     public ResponseEntity<ApiResponse<PagedResponse<ServiceResponse>>> getAllServices(
@@ -69,5 +75,11 @@ public class ServiceController {
     public ResponseEntity<ApiResponse<Void>> deleteService(@PathVariable UUID serviceId) {
         serviceService.deleteService(serviceId);
         return ResponseEntity.ok(ApiResponse.success(null, "Service deleted successfully"));
+    }
+
+    @GetMapping("/{serviceId}/reviews")
+    public ResponseEntity<ApiResponse<List<ReviewResponse>>> getReviewsForService(@PathVariable UUID serviceId) {
+        List<ReviewResponse> data = reviewService.getReviewsForService(serviceId);
+        return ResponseEntity.ok(ApiResponse.success(data, "Service reviews retrieved successfully"));
     }
 }
