@@ -9,7 +9,7 @@ import com.eris.servicehub.entities.User;
 import com.eris.servicehub.exceptions.ResourceNotFoundException;
 import com.eris.servicehub.repositories.RoleRepository;
 import com.eris.servicehub.repositories.UserRepository;
-import com.eris.servicehub.services.service.JwtService;
+import com.eris.servicehub.services.security.JwtService;
 import com.eris.servicehub.services.auth.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;

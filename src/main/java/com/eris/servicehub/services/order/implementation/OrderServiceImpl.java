@@ -2,6 +2,7 @@ package com.eris.servicehub.services.order.implementation;
 
 import com.eris.servicehub.dtos.order.OrderRequest;
 import com.eris.servicehub.dtos.order.OrderResponse;
+import com.eris.servicehub.dtos.order.UpdateOrderStatusRequest;
 import com.eris.servicehub.entities.Order;
 import com.eris.servicehub.entities.OrderItem;
 import com.eris.servicehub.entities.Service;
@@ -19,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @org.springframework.stereotype.Service
@@ -118,5 +120,36 @@ public class OrderServiceImpl implements OrderService {
                 .status(order.getStatus())
                 .createdAt(order.getCreatedAt())
                 .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<OrderResponse> getOrdersForProvider() {
+        User provider = getCurrentUser();
+        List<Order> orders = orderRepository.findOrdersByProviderId(provider.getId());
+        return orders.stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public OrderResponse updateOrderStatus(UUID orderId, UpdateOrderStatusRequest request) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
+
+        OrderStatus newStatus = request.status();
+
+        // Simple state transition validation
+        if (order.getStatus() != OrderStatus.PENDING) {
+            throw new IllegalStateException("Only PENDING orders can be updated by a provider at this stage.");
+        }
+        if (newStatus != OrderStatus.ACCEPTED && newStatus != OrderStatus.REJECTED) {
+            throw new IllegalArgumentException("Provider can only change status to ACCEPTED or REJECTED.");
+        }
+
+        order.setStatus(newStatus);
+        Order updatedOrder = orderRepository.save(order);
+        return mapToResponse(updatedOrder);
     }
 }

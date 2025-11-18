@@ -1,4 +1,4 @@
-package com.eris.servicehub.services.service;
+package com.eris.servicehub.services.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
