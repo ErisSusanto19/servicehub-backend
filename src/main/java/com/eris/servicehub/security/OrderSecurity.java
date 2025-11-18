@@ -25,4 +25,15 @@ public class OrderSecurity {
         return order.getOrderItems().stream()
                 .anyMatch(item -> item.getService().getProvider().getEmail().equalsIgnoreCase(currentUsername));
     }
+
+    public boolean isCustomerForOrder(Authentication authentication, UUID orderId) {
+        String currentUsername = authentication.getName();
+
+        Order order = orderRepository.findById(orderId).orElse(null);
+        if (order == null) {
+            return false;
+        }
+
+        return order.getCustomer().getEmail().equalsIgnoreCase(currentUsername);
+    }
 }

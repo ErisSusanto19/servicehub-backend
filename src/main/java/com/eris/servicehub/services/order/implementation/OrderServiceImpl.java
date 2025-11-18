@@ -138,17 +138,50 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
 
+        OrderStatus currentStatus = order.getStatus();
         OrderStatus newStatus = request.status();
 
-        // Simple state transition validation
-        if (order.getStatus() != OrderStatus.PENDING) {
-            throw new IllegalStateException("Only PENDING orders can be updated by a provider at this stage.");
-        }
-        if (newStatus != OrderStatus.ACCEPTED && newStatus != OrderStatus.REJECTED) {
-            throw new IllegalArgumentException("Provider can only change status to ACCEPTED or REJECTED.");
+        switch (currentStatus) {
+            case PENDING:
+                if (newStatus != OrderStatus.ACCEPTED && newStatus != OrderStatus.REJECTED) {
+                    throw new IllegalArgumentException("From PENDING, provider can only move to ACCEPTED or REJECTED.");
+                }
+                break;
+            case ACCEPTED:
+                if (newStatus != OrderStatus.IN_PROGRESS) {
+                    throw new IllegalArgumentException("From ACCEPTED, provider can only move to IN_PROGRESS.");
+                }
+                break;
+            case IN_PROGRESS:
+                if (newStatus != OrderStatus.COMPLETED) {
+                    throw new IllegalArgumentException("From IN_PROGRESS, provider can only move to COMPLETED.");
+                }
+                break;
+            default:
+                throw new IllegalStateException("Order status cannot be changed from its current state: " + currentStatus);
         }
 
         order.setStatus(newStatus);
+        Order updatedOrder = orderRepository.save(order);
+        return mapToResponse(updatedOrder);
+    }
+
+    @Override
+    @Transactional
+    public OrderResponse cancelOrder(UUID orderId) {
+        User customer = getCurrentUser();
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
+
+        if (!order.getCustomer().getId().equals(customer.getId())) {
+            throw new org.springframework.security.access.AccessDeniedException("You are not authorized to cancel this order.");
+        }
+
+        if (order.getStatus() != OrderStatus.PENDING) {
+            throw new IllegalStateException("Only orders with PENDING status can be cancelled.");
+        }
+
+        order.setStatus(OrderStatus.CANCELLED);
         Order updatedOrder = orderRepository.save(order);
         return mapToResponse(updatedOrder);
     }

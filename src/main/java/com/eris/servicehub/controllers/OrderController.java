@@ -55,4 +55,12 @@ public class OrderController {
         ApiResponse<OrderResponse> response = ApiResponse.success(data, "Order status updated successfully");
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/{orderId}/cancel")
+    @PreAuthorize("hasAuthority('CUSTOMER') and @orderSecurity.isCustomerForOrder(authentication, #orderId)")
+    public ResponseEntity<ApiResponse<OrderResponse>> cancelOrder(@PathVariable UUID orderId) {
+        OrderResponse data = orderService.cancelOrder(orderId);
+        ApiResponse<OrderResponse> response = ApiResponse.success(data, "Order cancelled successfully");
+        return ResponseEntity.ok(response);
+    }
 }
