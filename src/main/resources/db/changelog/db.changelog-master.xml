@@ -19,8 +19,8 @@
                  stripComments="true"/>
     </changeSet>
 
-    <changeSet id="v003_create_order_tables" author="eris">
-        <sqlFile path="sql/v003_create_order_tables.sql"
+    <changeSet id="v003_create_order_table" author="eris">
+        <sqlFile path="sql/v003_create_order_table.sql"
                  relativeToChangelogFile="true"
                  splitStatements="true"
                  stripComments="true"/>
@@ -28,6 +28,13 @@
 
     <changeSet id="v004_create_review_table" author="eris">
         <sqlFile path="sql/v004_create_review_table.sql"
+                 relativeToChangelogFile="true"
+                 splitStatements="true"
+                 stripComments="true"/>
+    </changeSet>
+
+    <changeSet id="v005_create_service_images_table" author="eris">
+        <sqlFile path="sql/v005_create_service_images_table.sql"
                  relativeToChangelogFile="true"
                  splitStatements="true"
                  stripComments="true"/>
