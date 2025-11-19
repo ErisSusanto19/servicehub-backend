@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -83,5 +84,25 @@ public class ServiceController {
     public ResponseEntity<ApiResponse<List<ReviewResponse>>> getReviewsForService(@PathVariable UUID serviceId) {
         List<ReviewResponse> data = reviewService.getReviewsForService(serviceId);
         return ResponseEntity.ok(ApiResponse.success(data, "Service reviews retrieved successfully"));
+    }
+
+    @PostMapping("/{serviceId}/images")
+    @PreAuthorize("hasAuthority('PROVIDER') and @serviceSecurity.isOwner(authentication, #serviceId)")
+    public ResponseEntity<ApiResponse<ServiceResponse>> addImageToService(
+            @PathVariable UUID serviceId,
+            @RequestParam("file") MultipartFile file
+    ) {
+        ServiceResponse data = serviceService.addImageToService(serviceId, file);
+        return new ResponseEntity<>(ApiResponse.success(data, "Image added successfully"), HttpStatus.CREATED);
+    }
+
+    @DeleteMapping("/{serviceId}/images/{imageId}")
+    @PreAuthorize("hasAuthority('PROVIDER') and @serviceSecurity.isOwner(authentication, #serviceId)")
+    public ResponseEntity<ApiResponse<Void>> deleteImageFromService(
+            @PathVariable UUID serviceId,
+            @PathVariable UUID imageId
+    ) {
+        serviceService.deleteImageFromService(serviceId, imageId);
+        return ResponseEntity.ok(ApiResponse.success(null, "Image deleted successfully"));
     }
 }

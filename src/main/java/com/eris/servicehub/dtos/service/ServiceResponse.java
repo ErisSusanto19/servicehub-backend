@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -14,6 +15,7 @@ public class ServiceResponse {
     private String description;
     private BigDecimal price;
     private Double averageRating;
+    private List<ImageSummary> images;
     private ProviderSummary provider;
     private CategorySummary category;
 
@@ -29,5 +31,12 @@ public class ServiceResponse {
     public static class CategorySummary {
         private UUID id;
         private String name;
+    }
+
+    @Data
+    @Builder
+    public static class ImageSummary {
+        private UUID id;
+        private String imageUrl;
     }
 }

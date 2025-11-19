@@ -4,14 +4,13 @@ import com.eris.servicehub.dtos.service.ServiceRequest;
 import com.eris.servicehub.dtos.service.ServiceResponse;
 import com.eris.servicehub.entities.Category;
 import com.eris.servicehub.entities.Service;
+import com.eris.servicehub.entities.ServiceImage;
 import com.eris.servicehub.entities.User;
 import com.eris.servicehub.exceptions.ResourceNotFoundException;
-import com.eris.servicehub.repositories.CategoryRepository;
-import com.eris.servicehub.repositories.ReviewRepository;
-import com.eris.servicehub.repositories.ServiceRepository;
-import com.eris.servicehub.repositories.UserRepository;
+import com.eris.servicehub.repositories.*;
 import com.eris.servicehub.repositories.specifications.ServiceSpecification;
 import com.eris.servicehub.services.service.ServiceService;
+import com.eris.servicehub.services.storage.StorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,8 +20,11 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Component
 public class ServiceServiceImpl implements ServiceService {
@@ -31,6 +33,8 @@ public class ServiceServiceImpl implements ServiceService {
     @Autowired private UserRepository userRepository;
     @Autowired private CategoryRepository categoryRepository;
     @Autowired private ReviewRepository reviewRepository;
+    @Autowired private StorageService storageService;
+    @Autowired private ServiceImageRepository serviceImageRepository;
 
     private User getCurrentUser() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -56,12 +60,20 @@ public class ServiceServiceImpl implements ServiceService {
 
         Double averageRating = reviewRepository.findAverageRatingByServiceId(service.getId());
 
+        List<ServiceResponse.ImageSummary> imageSummaries = service.getImages().stream()
+                .map(image -> ServiceResponse.ImageSummary.builder()
+                        .id(image.getId())
+                        .imageUrl(image.getImageUrl())
+                        .build())
+                .toList();
+
         return ServiceResponse.builder()
                 .id(service.getId())
                 .name(service.getName())
                 .description(service.getDescription())
                 .price(service.getPrice())
                 .averageRating(averageRating != null ? averageRating : 0.0)
+                .images(imageSummaries)
                 .provider(providerSummary)
                 .category(categorySummary)
                 .build();
@@ -136,5 +148,41 @@ public class ServiceServiceImpl implements ServiceService {
             throw new ResourceNotFoundException("Service not found with id: " + serviceId);
         }
         serviceRepository.deleteById(serviceId);
+    }
+
+    @Override
+    @Transactional
+    public ServiceResponse addImageToService(UUID serviceId, MultipartFile file) {
+        Service service = serviceRepository.findById(serviceId)
+                .orElseThrow(() -> new ResourceNotFoundException("Service not found with id: " + serviceId));
+
+        String imageUrl = storageService.uploadFile(file, "servicehub/services");
+
+        ServiceImage serviceImage = ServiceImage.builder()
+                .imageUrl(imageUrl)
+                .service(service)
+                .build();
+
+        service.getImages().add(serviceImage);
+
+        Service updatedService = serviceRepository.save(service);
+        return mapToResponse(updatedService);
+    }
+
+    @Override
+    @Transactional
+    public void deleteImageFromService(UUID serviceId, UUID imageId) {
+        ServiceImage serviceImage = serviceImageRepository.findById(imageId)
+                .orElseThrow(() -> new ResourceNotFoundException("Image not found with id: " + imageId));
+
+        if (!serviceImage.getService().getId().equals(serviceId)) {
+            throw new org.springframework.security.access.AccessDeniedException("Image does not belong to the specified service.");
+        }
+
+        storageService.deleteFile(serviceImage.getImageUrl());
+
+        Service service = serviceImage.getService();
+        service.getImages().remove(serviceImage);
+        serviceRepository.save(service);
     }
 }
