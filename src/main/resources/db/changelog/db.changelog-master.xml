@@ -40,4 +40,11 @@
                  stripComments="true"/>
     </changeSet>
 
+    <changeSet id="v006_add_enabled_flag_to_users" author="eris">
+        <sqlFile path="sql/v006_add_enabled_flag_to_users.sql"
+                 relativeToChangelogFile="true"
+                 splitStatements="true"
+                 stripComments="true"/>
+    </changeSet>
+
 </databaseChangeLog>
