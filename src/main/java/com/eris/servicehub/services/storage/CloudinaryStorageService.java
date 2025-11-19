@@ -2,11 +2,14 @@ package com.eris.servicehub.services.storage;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import com.eris.servicehub.exceptions.FileValidationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -17,8 +20,21 @@ public class CloudinaryStorageService implements StorageService{
     @Autowired
     private Cloudinary cloudinary;
 
+    private final long maxSizeInBytes;
+    private final List<String> allowedMimeTypes;
+
+    public CloudinaryStorageService(
+            @Value("${file.max-size-mb}") long maxSizeInMb,
+            @Value("${file.allowed-types}") String allowedTypes
+    ) {
+        this.maxSizeInBytes = maxSizeInMb * 1024 * 1024;
+        this.allowedMimeTypes = List.of(allowedTypes.split(","));
+    }
+
     @Override
     public String uploadFile(MultipartFile file, String folderName){
+        validateFile(file);
+
         try {
             Map<?, ?> uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(
                     "folder", folderName,
@@ -29,6 +45,21 @@ public class CloudinaryStorageService implements StorageService{
 
         } catch (IOException e){
             throw new RuntimeException("Could not upload file to Cloudinary", e);
+        }
+    }
+
+    private void validateFile(MultipartFile file) {
+        if (file.isEmpty()) {
+            throw new FileValidationException("File cannot be empty.");
+        }
+
+        if (file.getSize() > this.maxSizeInBytes) {
+            throw new FileValidationException("File size exceeds the limit of " + (this.maxSizeInBytes / (1024 * 1024)) + " MB.");
+        }
+
+        String mimeType = file.getContentType();
+        if (mimeType == null || !this.allowedMimeTypes.contains(mimeType)) {
+            throw new FileValidationException("Invalid file type. Only " + this.allowedMimeTypes + " are allowed.");
         }
     }
 

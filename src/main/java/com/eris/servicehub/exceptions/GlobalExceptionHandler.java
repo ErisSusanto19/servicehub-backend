@@ -39,6 +39,12 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
     }
 
+    @ExceptionHandler(FileValidationException.class)
+    public ResponseEntity<ApiResponse<Object>> handleFileValidationException(FileValidationException ex) {
+        ApiResponse<Object> response = ApiResponse.error(ex.getMessage());
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Object>> handleAllExceptions(Exception ex) {
         // ex.printStackTrace();
