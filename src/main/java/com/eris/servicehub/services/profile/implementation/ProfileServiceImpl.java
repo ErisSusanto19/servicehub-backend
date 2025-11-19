@@ -9,11 +9,13 @@ import com.eris.servicehub.exceptions.ResourceNotFoundException;
 import com.eris.servicehub.repositories.RoleRepository;
 import com.eris.servicehub.repositories.UserRepository;
 import com.eris.servicehub.services.profile.ProfileService;
+import com.eris.servicehub.services.storage.StorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class ProfileServiceImpl implements ProfileService {
@@ -24,6 +26,8 @@ public class ProfileServiceImpl implements ProfileService {
     @Autowired
     private RoleRepository roleRepository;
 
+    @Autowired
+    private StorageService storageService;
 
     private User getCurrentUser() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -93,5 +97,26 @@ public class ProfileServiceImpl implements ProfileService {
         userRepository.save(currentUser);
 
         return mapToUserProfileResponse(currentUser);
+    }
+
+    @Override
+    @Transactional
+    public UserProfileResponse updateProfileImage(MultipartFile file){
+        User currentUser = getCurrentUser();
+        Profile profile = currentUser.getProfile();
+
+        if (profile == null) {
+            profile = new Profile();
+            profile.setUser(currentUser);
+            currentUser.setProfile(profile);
+        }
+
+        storageService.deleteFile(profile.getImage());
+
+        String fileUrl = storageService.uploadFile(file, "servicehub/avatars");
+
+        profile.setImage(fileUrl);
+        User updatedUser = userRepository.save(currentUser);
+        return mapToUserProfileResponse(updatedUser);
     }
 }

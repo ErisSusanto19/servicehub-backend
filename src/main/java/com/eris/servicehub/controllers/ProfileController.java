@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/profile")
@@ -34,5 +35,13 @@ public class ProfileController {
     public ResponseEntity<ApiResponse<UserProfileResponse>> becomeProvider() {
         UserProfileResponse data = profileService.becomeProvider();
         return ResponseEntity.ok(ApiResponse.success(data, "User is now a provider"));
+    }
+
+    @PostMapping("/me/image")
+    public ResponseEntity<ApiResponse<UserProfileResponse>> updateMyProfileImage(
+            @RequestParam("file") MultipartFile file
+    ) {
+        UserProfileResponse data = profileService.updateProfileImage(file);
+        return ResponseEntity.ok(ApiResponse.success(data, "Profile image updated successfully"));
     }
 }
