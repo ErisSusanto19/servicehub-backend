@@ -50,4 +50,8 @@ public class OrderSecurity {
         }
         return orderItem.getOrder().getCustomer().getEmail().equalsIgnoreCase(currentUsername);
     }
+
+    public boolean isParticipant(Authentication authentication, UUID orderId) {
+        return isCustomerForOrder(authentication, orderId) || isProviderForOrder(authentication, orderId);
+    }
 }

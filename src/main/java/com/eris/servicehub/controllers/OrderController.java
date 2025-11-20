@@ -4,7 +4,10 @@ import com.eris.servicehub.dtos.common.ApiResponse;
 import com.eris.servicehub.dtos.order.OrderRequest;
 import com.eris.servicehub.dtos.order.OrderResponse;
 import com.eris.servicehub.dtos.order.UpdateOrderStatusRequest;
+import com.eris.servicehub.dtos.ordernote.OrderNoteRequest;
+import com.eris.servicehub.dtos.ordernote.OrderNoteResponse;
 import com.eris.servicehub.services.order.OrderService;
+import com.eris.servicehub.services.ordernote.OrderNoteService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,6 +24,9 @@ public class OrderController {
 
     @Autowired
     private OrderService orderService;
+
+    @Autowired
+    private OrderNoteService orderNoteService;
 
     @PostMapping
     @PreAuthorize("hasAuthority('CUSTOMER')")
@@ -62,5 +68,22 @@ public class OrderController {
         OrderResponse data = orderService.cancelOrder(orderId);
         ApiResponse<OrderResponse> response = ApiResponse.success(data, "Order cancelled successfully");
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{orderId}/notes")
+    @PreAuthorize("@orderSecurity.isParticipant(authentication, #orderId)")
+    public ResponseEntity<ApiResponse<List<OrderNoteResponse>>> getOrderNotes(@PathVariable UUID orderId) {
+        List<OrderNoteResponse> data = orderNoteService.getNotesForOrder(orderId);
+        return ResponseEntity.ok(ApiResponse.success(data, "Order notes retrieved successfully"));
+    }
+
+    @PostMapping("/{orderId}/notes")
+    @PreAuthorize("@orderSecurity.isParticipant(authentication, #orderId)")
+    public ResponseEntity<ApiResponse<OrderNoteResponse>> addOrderNote(
+            @PathVariable UUID orderId,
+            @Valid @RequestBody OrderNoteRequest request
+    ) {
+        OrderNoteResponse data = orderNoteService.createNoteForOrder(orderId, request);
+        return new ResponseEntity<>(ApiResponse.success(data, "Note added successfully"), HttpStatus.CREATED);
     }
 }
