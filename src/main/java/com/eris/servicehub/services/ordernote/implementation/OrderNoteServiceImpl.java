@@ -10,6 +10,7 @@ import com.eris.servicehub.repositories.OrderNoteRepository;
 import com.eris.servicehub.repositories.OrderRepository;
 import com.eris.servicehub.repositories.UserRepository;
 import com.eris.servicehub.security.OrderSecurity;
+import com.eris.servicehub.services.notification.NotificationService;
 import com.eris.servicehub.services.ordernote.OrderNoteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -29,6 +31,7 @@ public class OrderNoteServiceImpl implements OrderNoteService {
     @Autowired private OrderRepository orderRepository;
     @Autowired private UserRepository userRepository;
     @Autowired private OrderSecurity orderSecurity;
+    @Autowired private NotificationService notificationService;
 
     private User getCurrentUser() {
         String username = ((UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
@@ -74,6 +77,9 @@ public class OrderNoteServiceImpl implements OrderNoteService {
                 .build();
 
         OrderNote savedNote = orderNoteRepository.save(newNote);
+
+        notifyParticipants(savedNote);
+
         return mapToResponse(savedNote);
     }
 
@@ -89,5 +95,22 @@ public class OrderNoteServiceImpl implements OrderNoteService {
                 .author(authorSummary)
                 .createdAt(note.getCreatedAt())
                 .build();
+    }
+
+    private void notifyParticipants(OrderNote note) {
+        Order order = note.getOrder();
+        User author = note.getAuthor();
+        String orderIdShort = order.getId().toString().substring(0, 8);
+        String message = String.format("You have new messages on order #%s from %s.", orderIdShort, author.getName());
+        String link = "/orders/" + order.getId();
+
+        if (order.getCustomer().getId().equals(author.getId())) {
+            Set<User> providers = order.getOrderItems().stream()
+                    .map(item -> item.getService().getProvider())
+                    .collect(Collectors.toSet());
+            providers.forEach(provider -> notificationService.createNotification(provider, message, link));
+        } else {
+            notificationService.createNotification(order.getCustomer(), message, link);
+        }
     }
 }
