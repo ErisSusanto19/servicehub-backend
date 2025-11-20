@@ -8,6 +8,7 @@ import com.eris.servicehub.entities.OrderItem;
 import com.eris.servicehub.entities.Service;
 import com.eris.servicehub.entities.User;
 import com.eris.servicehub.enums.OrderStatus;
+import com.eris.servicehub.enums.PaymentStatus;
 import com.eris.servicehub.exceptions.ResourceNotFoundException;
 import com.eris.servicehub.repositories.OrderRepository;
 import com.eris.servicehub.repositories.ServiceRepository;
@@ -203,6 +204,26 @@ public class OrderServiceImpl implements OrderService {
 
         order.setStatus(OrderStatus.CANCELLED);
         Order updatedOrder = orderRepository.save(order);
+        return mapToResponse(updatedOrder);
+    }
+
+    @Override
+    @Transactional
+    public OrderResponse confirmPayment(UUID orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
+
+        // Validasi: Pastikan pesanan belum dibayar atau dibatalkan
+        if (order.getPaymentStatus() == PaymentStatus.PAID) {
+            throw new IllegalStateException("Order has already been paid.");
+        }
+        if (order.getStatus() == OrderStatus.CANCELLED) {
+            throw new IllegalStateException("Cannot process payment for a cancelled order.");
+        }
+
+        order.setPaymentStatus(PaymentStatus.PAID);
+        Order updatedOrder = orderRepository.save(order);
+
         return mapToResponse(updatedOrder);
     }
 }
