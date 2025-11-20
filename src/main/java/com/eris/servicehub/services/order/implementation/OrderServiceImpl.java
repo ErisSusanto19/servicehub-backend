@@ -154,6 +154,9 @@ public class OrderServiceImpl implements OrderService {
 
         switch (currentStatus) {
             case PENDING:
+                if (newStatus == OrderStatus.ACCEPTED && order.getPaymentStatus() != PaymentStatus.PAID) {
+                    throw new IllegalStateException("Order must be paid before it can be accepted.");
+                }
                 if (newStatus != OrderStatus.ACCEPTED && newStatus != OrderStatus.REJECTED) {
                     throw new IllegalArgumentException("From PENDING, provider can only move to ACCEPTED or REJECTED.");
                 }
