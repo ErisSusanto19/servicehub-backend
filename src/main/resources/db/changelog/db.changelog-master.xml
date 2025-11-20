@@ -54,4 +54,11 @@
                  stripComments="true"/>
     </changeSet>
 
+    <changeSet id="v008_create_payout_tables" author="eris">
+        <sqlFile path="sql/v008_create_payout_tables.sql"
+                 relativeToChangelogFile="true"
+                 splitStatements="true"
+                 stripComments="true"/>
+    </changeSet>
+
 </databaseChangeLog>

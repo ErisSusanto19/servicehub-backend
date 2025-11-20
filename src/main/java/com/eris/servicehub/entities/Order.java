@@ -68,4 +68,7 @@ public class Order {
 
     @Column(name = "transaction_id")
     private String transactionId;
+
+    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private PayoutItem payoutItem;
 }
