@@ -245,7 +245,6 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
 
-        // Validasi: Pastikan pesanan belum dibayar atau dibatalkan
         if (order.getPaymentStatus() == PaymentStatus.PAID) {
             throw new IllegalStateException("Order has already been paid.");
         }
