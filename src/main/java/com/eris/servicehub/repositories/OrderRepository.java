@@ -1,6 +1,8 @@
 package com.eris.servicehub.repositories;
 
 import com.eris.servicehub.entities.Order;
+import com.eris.servicehub.enums.OrderStatus;
+import com.eris.servicehub.enums.PaymentStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -18,4 +20,11 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
 
     @Query("SELECT o FROM Order o JOIN o.orderItems oi JOIN oi.service s WHERE s.provider.id = :providerId AND o.status = 'COMPLETED' ORDER BY o.updatedAt DESC")
     List<Order> findCompletedOrdersByProviderId(@Param("providerId") UUID providerId);
+
+    @Query("SELECT o FROM Order o JOIN o.orderItems oi JOIN oi.service s WHERE s.provider.id = :providerId AND o.status = :status AND o.paymentStatus = :paymentStatus AND o.payoutItem IS NULL")
+    List<Order> findPayableOrdersByProviderId(
+            @Param("providerId") UUID providerId,
+            @Param("status") OrderStatus status,
+            @Param("paymentStatus") PaymentStatus paymentStatus
+    );
 }
