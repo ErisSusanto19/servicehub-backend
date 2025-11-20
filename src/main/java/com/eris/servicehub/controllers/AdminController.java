@@ -4,8 +4,10 @@ import com.eris.servicehub.dtos.admin.UserSummaryResponse;
 import com.eris.servicehub.dtos.common.ApiResponse;
 import com.eris.servicehub.dtos.common.PagedResponse;
 import com.eris.servicehub.dtos.order.OrderResponse;
+import com.eris.servicehub.dtos.payout.PayoutResponse;
 import com.eris.servicehub.services.admin.AdminService;
 import com.eris.servicehub.services.order.OrderService;
+import com.eris.servicehub.services.payout.PayoutService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,6 +27,9 @@ public class AdminController {
 
     @Autowired
     private OrderService orderService;
+
+    @Autowired
+    private PayoutService payoutService;
 
     @GetMapping("/users")
     public ResponseEntity<ApiResponse<PagedResponse<UserSummaryResponse>>> getAllUsers(Pageable pageable) {
@@ -48,5 +53,11 @@ public class AdminController {
     public ResponseEntity<ApiResponse<OrderResponse>> confirmOrderPayment(@PathVariable UUID orderId) {
         OrderResponse data = orderService.confirmPayment(orderId);
         return ResponseEntity.ok(ApiResponse.success(data, "Order payment confirmed successfully"));
+    }
+
+    @PostMapping("/payouts/provider/{providerId}")
+    public ResponseEntity<ApiResponse<PayoutResponse>> processPayout(@PathVariable UUID providerId) {
+        PayoutResponse data = payoutService.processProviderPayout(providerId);
+        return ResponseEntity.ok(ApiResponse.success(data, "Payout processed successfully for provider " + providerId));
     }
 }
