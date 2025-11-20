@@ -6,6 +6,7 @@ import com.eris.servicehub.entities.*;
 import com.eris.servicehub.enums.OrderStatus;
 import com.eris.servicehub.exceptions.ResourceNotFoundException;
 import com.eris.servicehub.repositories.*;
+import com.eris.servicehub.services.notification.NotificationService;
 import com.eris.servicehub.services.review.ReviewService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,6 +24,7 @@ public class ReviewServiceImpl implements ReviewService {
     @Autowired private ReviewRepository reviewRepository;
     @Autowired private OrderItemRepository orderItemRepository;
     @Autowired private UserRepository userRepository;
+    @Autowired private NotificationService notificationService;
 
     private User getCurrentUser() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -64,6 +66,12 @@ public class ReviewServiceImpl implements ReviewService {
                 .build();
 
         Review savedReview = reviewRepository.save(review);
+
+        User provider = savedReview.getService().getProvider();
+        String message = String.format("Your '%s' service received a new review from %s.", savedReview.getService().getName(), savedReview.getCustomer().getName());
+        String link = "/services/" + savedReview.getService().getId() + "/reviews";
+        notificationService.createNotification(provider, message, link);
+
         return mapToResponse(savedReview);
     }
 

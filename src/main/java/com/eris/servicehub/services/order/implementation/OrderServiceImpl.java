@@ -13,6 +13,7 @@ import com.eris.servicehub.exceptions.ResourceNotFoundException;
 import com.eris.servicehub.repositories.OrderRepository;
 import com.eris.servicehub.repositories.ServiceRepository;
 import com.eris.servicehub.repositories.UserRepository;
+import com.eris.servicehub.services.notification.NotificationService;
 import com.eris.servicehub.services.order.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -32,6 +34,7 @@ public class OrderServiceImpl implements OrderService {
     @Autowired private OrderRepository orderRepository;
     @Autowired private ServiceRepository serviceRepository;
     @Autowired private UserRepository userRepository;
+    @Autowired private NotificationService notificationService;
 
     @Value("${platform.fee.percentage}")
     private BigDecimal platformFeePercentage;
@@ -75,6 +78,16 @@ public class OrderServiceImpl implements OrderService {
         newOrder.setOrderItems(orderItems);
 
         Order savedOrder = orderRepository.save(newOrder);
+
+        Set<User> providers = services.stream()
+                .map(Service::getProvider)
+                .collect(Collectors.toSet());
+
+        for (User provider : providers) {
+            String message = String.format("You have a new order #%s from %s.", savedOrder.getId().toString().substring(0, 8), customer.getName());
+            String link = "/provider/orders/" + savedOrder.getId();
+            notificationService.createNotification(provider, message, link);
+        }
 
         return mapToResponse(savedOrder);
     }
@@ -178,6 +191,11 @@ public class OrderServiceImpl implements OrderService {
 
         order.setStatus(newStatus);
         Order updatedOrder = orderRepository.save(order);
+
+        String message = String.format("Your order status #%s has been changed to %s.", updatedOrder.getId().toString().substring(0, 8), newStatus);
+        String link = "/customer/orders/" + updatedOrder.getId();
+        notificationService.createNotification(updatedOrder.getCustomer(), message, link);
+
         return mapToResponse(updatedOrder);
     }
 
@@ -207,6 +225,17 @@ public class OrderServiceImpl implements OrderService {
 
         order.setStatus(OrderStatus.CANCELLED);
         Order updatedOrder = orderRepository.save(order);
+
+        Set<User> providers = updatedOrder.getOrderItems().stream()
+                .map(item -> item.getService().getProvider())
+                .collect(Collectors.toSet());
+
+        for (User provider : providers) {
+            String message = String.format("Order #%s has been canceled by the customer.", updatedOrder.getId().toString().substring(0, 8));
+            String link = "/provider/orders/" + updatedOrder.getId();
+            notificationService.createNotification(provider, message, link);
+        }
+
         return mapToResponse(updatedOrder);
     }
 
