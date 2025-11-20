@@ -68,4 +68,11 @@
                  stripComments="true"/>
     </changeSet>
 
+    <changeSet id="v010_create_order_notes_table" author="eris">
+        <sqlFile path="sql/v010_create_order_notes_table.sql"
+                 relativeToChangelogFile="true"
+                 splitStatements="true"
+                 stripComments="true"/>
+    </changeSet>
+
 </databaseChangeLog>

@@ -71,4 +71,7 @@ public class Order {
 
     @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private PayoutItem payoutItem;
+
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrderNote> notes;
 }
