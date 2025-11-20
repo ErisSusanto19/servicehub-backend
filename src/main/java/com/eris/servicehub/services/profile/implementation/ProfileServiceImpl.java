@@ -1,11 +1,15 @@
 package com.eris.servicehub.services.profile.implementation;
 
+import com.eris.servicehub.dtos.profile.ProviderWalletResponse;
 import com.eris.servicehub.dtos.profile.UpdateProfileRequest;
 import com.eris.servicehub.dtos.profile.UserProfileResponse;
+import com.eris.servicehub.entities.Order;
 import com.eris.servicehub.entities.Profile;
 import com.eris.servicehub.entities.Role;
 import com.eris.servicehub.entities.User;
+import com.eris.servicehub.enums.PaymentStatus;
 import com.eris.servicehub.exceptions.ResourceNotFoundException;
+import com.eris.servicehub.repositories.OrderRepository;
 import com.eris.servicehub.repositories.RoleRepository;
 import com.eris.servicehub.repositories.UserRepository;
 import com.eris.servicehub.services.profile.ProfileService;
@@ -16,6 +20,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ProfileServiceImpl implements ProfileService {
@@ -28,6 +36,9 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Autowired
     private StorageService storageService;
+
+    @Autowired
+    private OrderRepository orderRepository;
 
     private User getCurrentUser() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -118,5 +129,44 @@ public class ProfileServiceImpl implements ProfileService {
         profile.setImage(fileUrl);
         User updatedUser = userRepository.save(currentUser);
         return mapToUserProfileResponse(updatedUser);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ProviderWalletResponse getProviderWallet() {
+        User provider = getCurrentUser();
+
+        List<Order> completedOrders = orderRepository.findCompletedOrdersByProviderId(provider.getId());
+
+        BigDecimal totalGrossRevenue = BigDecimal.ZERO;
+        BigDecimal totalNetRevenue = BigDecimal.ZERO;
+        BigDecimal pendingPayout = BigDecimal.ZERO;
+
+        for (Order order : completedOrders) {
+            totalGrossRevenue = totalGrossRevenue.add(order.getTotalPrice());
+            if (order.getPaymentStatus() == PaymentStatus.PAID) {
+                totalNetRevenue = totalNetRevenue.add(order.getNetPayout());
+            } else {
+                pendingPayout = pendingPayout.add(order.getNetPayout());
+            }
+        }
+
+        List<ProviderWalletResponse.TransactionSummary> transactions = completedOrders.stream()
+                .map(order -> ProviderWalletResponse.TransactionSummary.builder()
+                        .orderId(order.getId())
+                        .completedAt(order.getUpdatedAt())
+                        .grossAmount(order.getTotalPrice())
+                        .platformFee(order.getPlatformFee())
+                        .netAmount(order.getNetPayout())
+                        .paymentStatus(order.getPaymentStatus())
+                        .build())
+                .collect(Collectors.toList());
+
+        return ProviderWalletResponse.builder()
+                .totalGrossRevenue(totalGrossRevenue)
+                .totalNetRevenue(totalNetRevenue)
+                .pendingPayout(pendingPayout)
+                .recentTransactions(transactions)
+                .build();
     }
 }

@@ -1,12 +1,14 @@
 package com.eris.servicehub.controllers;
 
 import com.eris.servicehub.dtos.common.ApiResponse;
+import com.eris.servicehub.dtos.profile.ProviderWalletResponse;
 import com.eris.servicehub.dtos.profile.UpdateProfileRequest;
 import com.eris.servicehub.dtos.profile.UserProfileResponse;
 import com.eris.servicehub.services.profile.ProfileService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -43,5 +45,12 @@ public class ProfileController {
     ) {
         UserProfileResponse data = profileService.updateProfileImage(file);
         return ResponseEntity.ok(ApiResponse.success(data, "Profile image updated successfully"));
+    }
+
+    @GetMapping("/me/wallet")
+    @PreAuthorize("hasAuthority('PROVIDER')")
+    public ResponseEntity<ApiResponse<ProviderWalletResponse>> getMyWallet() {
+        ProviderWalletResponse data = profileService.getProviderWallet();
+        return ResponseEntity.ok(ApiResponse.success(data, "Provider wallet retrieved successfully"));
     }
 }

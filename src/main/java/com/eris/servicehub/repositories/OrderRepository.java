@@ -12,6 +12,10 @@ import java.util.UUID;
 @Repository
 public interface OrderRepository extends JpaRepository<Order, UUID> {
     List<Order> findByCustomerId(UUID customerId);
+
     @Query("SELECT DISTINCT o FROM Order o JOIN o.orderItems oi JOIN oi.service s WHERE s.provider.id = :providerId ORDER BY o.createdAt DESC")
     List<Order> findOrdersByProviderId(@Param("providerId") UUID providerId);
+
+    @Query("SELECT o FROM Order o JOIN o.orderItems oi JOIN oi.service s WHERE s.provider.id = :providerId AND o.status = 'COMPLETED' ORDER BY o.updatedAt DESC")
+    List<Order> findCompletedOrdersByProviderId(@Param("providerId") UUID providerId);
 }
