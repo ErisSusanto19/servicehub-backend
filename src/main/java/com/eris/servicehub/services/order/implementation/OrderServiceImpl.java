@@ -14,11 +14,13 @@ import com.eris.servicehub.repositories.ServiceRepository;
 import com.eris.servicehub.repositories.UserRepository;
 import com.eris.servicehub.services.order.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -29,6 +31,10 @@ public class OrderServiceImpl implements OrderService {
     @Autowired private OrderRepository orderRepository;
     @Autowired private ServiceRepository serviceRepository;
     @Autowired private UserRepository userRepository;
+
+    @Value("${platform.fee.percentage}")
+    private BigDecimal platformFeePercentage;
+
 
     private User getCurrentUser() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -119,6 +125,10 @@ public class OrderServiceImpl implements OrderService {
                 .totalPrice(order.getTotalPrice())
                 .status(order.getStatus())
                 .createdAt(order.getCreatedAt())
+                .updatedAt(order.getUpdatedAt())
+                .paymentStatus(order.getPaymentStatus())
+                .platformFee(order.getPlatformFee())
+                .netPayout(order.getNetPayout())
                 .build();
     }
 
@@ -156,6 +166,7 @@ public class OrderServiceImpl implements OrderService {
                 if (newStatus != OrderStatus.COMPLETED) {
                     throw new IllegalArgumentException("From IN_PROGRESS, provider can only move to COMPLETED.");
                 }
+                calculateFinancials(order);
                 break;
             default:
                 throw new IllegalStateException("Order status cannot be changed from its current state: " + currentStatus);
@@ -164,6 +175,15 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(newStatus);
         Order updatedOrder = orderRepository.save(order);
         return mapToResponse(updatedOrder);
+    }
+
+    private void calculateFinancials(Order order) {
+        BigDecimal total = order.getTotalPrice();
+        BigDecimal fee = total.multiply(platformFeePercentage).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal payout = total.subtract(fee);
+
+        order.setPlatformFee(fee);
+        order.setNetPayout(payout);
     }
 
     @Override

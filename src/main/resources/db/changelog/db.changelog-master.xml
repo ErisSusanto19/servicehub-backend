@@ -47,4 +47,11 @@
                  stripComments="true"/>
     </changeSet>
 
+    <changeSet id="v007_add_payment_details_to_orders" author="eris">
+        <sqlFile path="sql/v007_add_payment_details_to_orders.sql"
+                 relativeToChangelogFile="true"
+                 splitStatements="true"
+                 stripComments="true"/>
+    </changeSet>
+
 </databaseChangeLog>

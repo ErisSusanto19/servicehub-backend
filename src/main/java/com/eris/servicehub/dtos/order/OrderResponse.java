@@ -1,6 +1,7 @@
 package com.eris.servicehub.dtos.order;
 
 import com.eris.servicehub.enums.OrderStatus;
+import com.eris.servicehub.enums.PaymentStatus;
 import lombok.Builder;
 import lombok.Data;
 
@@ -18,6 +19,10 @@ public class OrderResponse {
     private BigDecimal totalPrice;
     private OrderStatus status;
     private Instant createdAt;
+    private Instant updatedAt;
+    private PaymentStatus paymentStatus;
+    private BigDecimal platformFee;
+    private BigDecimal netPayout;
 
     @Data
     @Builder
