@@ -61,4 +61,11 @@
                  stripComments="true"/>
     </changeSet>
 
+    <changeSet id="v009_create_notifications_table" author="eris">
+        <sqlFile path="sql/v009_create_notifications_table.sql"
+                 relativeToChangelogFile="true"
+                 splitStatements="true"
+                 stripComments="true"/>
+    </changeSet>
+
 </databaseChangeLog>
