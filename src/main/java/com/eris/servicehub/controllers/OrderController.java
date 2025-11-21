@@ -6,8 +6,10 @@ import com.eris.servicehub.dtos.order.OrderResponse;
 import com.eris.servicehub.dtos.order.UpdateOrderStatusRequest;
 import com.eris.servicehub.dtos.ordernote.OrderNoteRequest;
 import com.eris.servicehub.dtos.ordernote.OrderNoteResponse;
+import com.eris.servicehub.dtos.payment.PaymentResponse;
 import com.eris.servicehub.services.order.OrderService;
 import com.eris.servicehub.services.ordernote.OrderNoteService;
+import com.eris.servicehub.services.payment.PaymentService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -27,6 +29,9 @@ public class OrderController {
 
     @Autowired
     private OrderNoteService orderNoteService;
+
+    @Autowired
+    private PaymentService paymentService;
 
     @PostMapping
     @PreAuthorize("hasAuthority('CUSTOMER')")
@@ -85,5 +90,12 @@ public class OrderController {
     ) {
         OrderNoteResponse data = orderNoteService.createNoteForOrder(orderId, request);
         return new ResponseEntity<>(ApiResponse.success(data, "Note added successfully"), HttpStatus.CREATED);
+    }
+
+    @PostMapping("/{orderId}/pay")
+    @PreAuthorize("hasAuthority('CUSTOMER') and @orderSecurity.isCustomerForOrder(authentication, #orderId)")
+    public ResponseEntity<ApiResponse<PaymentResponse>> payForOrder(@PathVariable UUID orderId) {
+        PaymentResponse data = paymentService.createTransaction(orderId);
+        return ResponseEntity.ok(ApiResponse.success(data, "Payment transaction created successfully"));
     }
 }
