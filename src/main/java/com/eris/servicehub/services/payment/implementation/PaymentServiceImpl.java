@@ -7,6 +7,7 @@ import com.eris.servicehub.enums.OrderStatus;
 import com.eris.servicehub.enums.PaymentStatus;
 import com.eris.servicehub.exceptions.ResourceNotFoundException;
 import com.eris.servicehub.repositories.OrderRepository;
+import com.eris.servicehub.services.notification.NotificationService;
 import com.eris.servicehub.services.payment.PaymentService;
 import com.midtrans.httpclient.error.MidtransError;
 import com.midtrans.service.MidtransSnapApi;
@@ -24,6 +25,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Autowired private MidtransSnapApi midtransSnapApi;
     @Autowired private OrderRepository orderRepository;
+    @Autowired private NotificationService notificationService;
 
     @Override
     @Transactional
@@ -70,7 +72,46 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
+    @Transactional
     public void handleNotification(Map<String, Object> notificationPayload) {
+        String orderIdString = (String) notificationPayload.get("order_id");
+        UUID orderId = UUID.fromString(orderIdString);
 
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found: " + orderId));
+
+        try {
+            // if (!isValid) {
+            //     System.out.println("Invalid Midtrans signature");
+            //     return;
+            // }
+
+            String transactionStatus = (String) notificationPayload.get("transaction_status");
+            String fraudStatus = (String) notificationPayload.get("fraud_status");
+
+            if ("capture".equals(transactionStatus)) {
+                if ("accept".equals(fraudStatus)) {
+                    updateOrderToPaid(order);
+                }
+            } else if ("settlement".equals(transactionStatus)) {
+                    updateOrderToPaid(order);
+            } else if ("cancel".equals(transactionStatus) || "deny".equals(transactionStatus) || "expire".equals(transactionStatus)) {
+                order.setPaymentStatus(PaymentStatus.FAILED);
+            }
+
+            orderRepository.save(order);
+
+        } catch (Exception e) {
+            System.err.println("Error processing Midtrans notification: " + e.getMessage());
+        }
+
+    }
+
+    private void updateOrderToPaid(Order order) {
+        if (order.getPaymentStatus() != PaymentStatus.PAID) {
+            order.setPaymentStatus(PaymentStatus.PAID);
+            String message = String.format("Payment for order #%s was successful.", order.getId().toString().substring(0, 8));
+            notificationService.createNotification(order.getCustomer(), message, "/customer/orders/" + order.getId());
+        }
     }
 }
