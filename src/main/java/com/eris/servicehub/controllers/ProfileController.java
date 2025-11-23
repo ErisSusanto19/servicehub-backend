@@ -1,6 +1,7 @@
 package com.eris.servicehub.controllers;
 
 import com.eris.servicehub.dtos.common.ApiResponse;
+import com.eris.servicehub.dtos.common.PagedResponse;
 import com.eris.servicehub.dtos.payout.PayoutResponse;
 import com.eris.servicehub.dtos.profile.ProviderWalletResponse;
 import com.eris.servicehub.dtos.profile.UpdateProfileRequest;
@@ -9,6 +10,8 @@ import com.eris.servicehub.services.payout.PayoutService;
 import com.eris.servicehub.services.profile.ProfileService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -63,8 +66,9 @@ public class ProfileController {
 
     @GetMapping("/me/payouts")
     @PreAuthorize("hasAuthority('PROVIDER')")
-    public ResponseEntity<ApiResponse<List<PayoutResponse>>> getMyPayouts() {
-        List<PayoutResponse> data = payoutService.getMyPayoutHistory();
+    public ResponseEntity<ApiResponse<PagedResponse<PayoutResponse>>> getMyPayouts(Pageable pageable) {
+        Page<PayoutResponse> payoutPage = payoutService.getMyPayoutHistory(pageable);
+        PagedResponse<PayoutResponse> data = PagedResponse.from(payoutPage);
         return ResponseEntity.ok(ApiResponse.success(data, "Payout history retrieved successfully"));
     }
 }

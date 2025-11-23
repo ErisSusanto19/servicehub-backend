@@ -8,6 +8,8 @@ import com.eris.servicehub.exceptions.ResourceNotFoundException;
 import com.eris.servicehub.repositories.*;
 import com.eris.servicehub.services.payout.PayoutService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -71,10 +73,10 @@ public class PayoutServiceImpl implements PayoutService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<PayoutResponse> getMyPayoutHistory() {
+    public Page<PayoutResponse> getMyPayoutHistory(Pageable pageable) {
         User currentUser = getCurrentUser();
-        List<Payout> payouts = payoutRepository.findByProviderIdOrderByPayoutDateDesc(currentUser.getId());
-        return payouts.stream().map(this::mapToPayoutResponse).collect(Collectors.toList());
+        Page<Payout> payoutsPage = payoutRepository.findByProviderIdOrderByPayoutDateDesc(currentUser.getId(), pageable);
+        return payoutsPage.map(this::mapToPayoutResponse);
     }
 
     private PayoutResponse mapToPayoutResponse(Payout payout) {
