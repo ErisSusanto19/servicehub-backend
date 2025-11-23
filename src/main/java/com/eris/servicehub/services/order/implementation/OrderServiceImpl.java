@@ -17,6 +17,8 @@ import com.eris.servicehub.services.notification.NotificationService;
 import com.eris.servicehub.services.order.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.transaction.annotation.Transactional;
@@ -92,12 +94,11 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<OrderResponse> getMyOrders() {
+    public Page<OrderResponse> getMyOrders(Pageable pageable) {
         User customer = getCurrentUser();
-        List<Order> orders = orderRepository.findByCustomerId(customer.getId());
-        return orders.stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+        Page<Order> ordersPage = orderRepository.findByCustomerId(customer.getId(), pageable);
+
+        return ordersPage.map(this::mapToResponse);
     }
 
     private OrderResponse mapToResponse(Order order) {
@@ -146,12 +147,11 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<OrderResponse> getOrdersForProvider() {
+    public Page<OrderResponse> getOrdersForProvider(Pageable pageable) {
         User provider = getCurrentUser();
-        List<Order> orders = orderRepository.findOrdersByProviderId(provider.getId());
-        return orders.stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+        Page<Order> ordersPage = orderRepository.findOrdersByProviderId(provider.getId(), pageable);
+
+        return ordersPage.map(this::mapToResponse);
     }
 
     @Override

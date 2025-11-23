@@ -3,6 +3,8 @@ package com.eris.servicehub.repositories;
 import com.eris.servicehub.entities.Order;
 import com.eris.servicehub.enums.OrderStatus;
 import com.eris.servicehub.enums.PaymentStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -13,10 +15,13 @@ import java.util.UUID;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order, UUID> {
-    List<Order> findByCustomerId(UUID customerId);
+    Page<Order> findByCustomerId(UUID customerId, Pageable pageable);
 
-    @Query("SELECT DISTINCT o FROM Order o JOIN o.orderItems oi JOIN oi.service s WHERE s.provider.id = :providerId ORDER BY o.createdAt DESC")
-    List<Order> findOrdersByProviderId(@Param("providerId") UUID providerId);
+    @Query(
+            value = "SELECT DISTINCT o FROM Order o JOIN o.orderItems oi JOIN oi.service s WHERE s.provider.id = :providerId ORDER BY o.createdAt DESC",
+            countQuery = "SELECT count(DISTINCT o) FROM Order o JOIN o.orderItems oi JOIN oi.service s WHERE s.provider.id = :providerId"
+    )
+    Page<Order> findOrdersByProviderId(@Param("providerId") UUID providerId, Pageable pageable);
 
     @Query("SELECT o FROM Order o JOIN o.orderItems oi JOIN oi.service s WHERE s.provider.id = :providerId AND o.status = 'COMPLETED' ORDER BY o.updatedAt DESC")
     List<Order> findCompletedOrdersByProviderId(@Param("providerId") UUID providerId);

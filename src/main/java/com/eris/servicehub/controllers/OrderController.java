@@ -1,6 +1,7 @@
 package com.eris.servicehub.controllers;
 
 import com.eris.servicehub.dtos.common.ApiResponse;
+import com.eris.servicehub.dtos.common.PagedResponse;
 import com.eris.servicehub.dtos.order.OrderRequest;
 import com.eris.servicehub.dtos.order.OrderResponse;
 import com.eris.servicehub.dtos.order.UpdateOrderStatusRequest;
@@ -12,6 +13,8 @@ import com.eris.servicehub.services.ordernote.OrderNoteService;
 import com.eris.servicehub.services.payment.PaymentService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -43,17 +46,21 @@ public class OrderController {
     }
 
     @GetMapping("/my-orders")
-    public ResponseEntity<ApiResponse<List<OrderResponse>>> getMyOrders() {
-        List<OrderResponse> data = orderService.getMyOrders();
-        ApiResponse<List<OrderResponse>> response = ApiResponse.success(data, "User's orders retrieved successfully");
+    public ResponseEntity<ApiResponse<PagedResponse<OrderResponse>>> getMyOrders(Pageable pageable) {
+        Page<OrderResponse> orderPage = orderService.getMyOrders(pageable);
+        PagedResponse<OrderResponse> data = PagedResponse.from(orderPage);
+
+        ApiResponse<PagedResponse<OrderResponse>> response = ApiResponse.success(data, "User's orders retrieved successfully");
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/provider")
     @PreAuthorize("hasAuthority('PROVIDER')")
-    public ResponseEntity<ApiResponse<List<OrderResponse>>> getOrdersForProvider() {
-        List<OrderResponse> data = orderService.getOrdersForProvider();
-        ApiResponse<List<OrderResponse>> response = ApiResponse.success(data, "Provider's orders retrieved successfully");
+    public ResponseEntity<ApiResponse<PagedResponse<OrderResponse>>> getOrdersForProvider(Pageable pageable) {
+        Page<OrderResponse> orderPage = orderService.getOrdersForProvider(pageable);
+        PagedResponse<OrderResponse> data = PagedResponse.from(orderPage);
+
+        ApiResponse<PagedResponse<OrderResponse>> response = ApiResponse.success(data, "Provider's orders retrieved successfully");
         return ResponseEntity.ok(response);
     }
 
