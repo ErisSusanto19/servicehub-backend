@@ -23,9 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @org.springframework.stereotype.Service
@@ -256,5 +254,16 @@ public class OrderServiceImpl implements OrderService {
         Order updatedOrder = orderRepository.save(order);
 
         return mapToResponse(updatedOrder);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Map<String, String> getOrderPaymentStatus(UUID orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found: " + orderId));
+        Map<String, String> response = new HashMap<>();
+        response.put("orderId", order.getId().toString());
+        response.put("paymentStatus", order.getPaymentStatus().name());
+        return response;
     }
 }

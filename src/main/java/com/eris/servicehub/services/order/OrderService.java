@@ -5,6 +5,7 @@ import com.eris.servicehub.dtos.order.OrderResponse;
 import com.eris.servicehub.dtos.order.UpdateOrderStatusRequest;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public interface OrderService {
@@ -14,4 +15,5 @@ public interface OrderService {
     OrderResponse updateOrderStatus(UUID orderId, UpdateOrderStatusRequest request);
     OrderResponse cancelOrder(UUID orderId);
     OrderResponse confirmPayment(UUID orderId);
+    Map<String, String> getOrderPaymentStatus(UUID orderId);
 }

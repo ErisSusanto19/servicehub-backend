@@ -18,6 +18,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -97,5 +98,12 @@ public class OrderController {
     public ResponseEntity<ApiResponse<PaymentResponse>> payForOrder(@PathVariable UUID orderId) {
         PaymentResponse data = paymentService.createTransaction(orderId);
         return ResponseEntity.ok(ApiResponse.success(data, "Payment transaction created successfully"));
+    }
+
+    @GetMapping("/{orderId}/payment-status")
+    @PreAuthorize("@orderSecurity.isParticipant(authentication, #orderId)")
+    public ResponseEntity<ApiResponse<Map<String, String>>> getOrderPaymentStatus(@PathVariable UUID orderId) {
+        Map<String, String> status = orderService.getOrderPaymentStatus(orderId);
+        return ResponseEntity.ok(ApiResponse.success(status, "Payment status retrieved successfully"));
     }
 }
