@@ -9,6 +9,8 @@ import com.eris.servicehub.repositories.*;
 import com.eris.servicehub.services.notification.NotificationService;
 import com.eris.servicehub.services.review.ReviewService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -77,10 +79,9 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ReviewResponse> getReviewsForService(UUID serviceId) {
-        return reviewRepository.findByServiceId(serviceId).stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+    public Page<ReviewResponse> getReviewsForService(UUID serviceId, Pageable pageable) {
+        Page<Review> reviewPage = reviewRepository.findByServiceId(serviceId, pageable);
+        return reviewPage.map(this::mapToResponse);
     }
 
     private ReviewResponse mapToResponse(Review review) {

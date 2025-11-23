@@ -81,8 +81,9 @@ public class ServiceController {
     }
 
     @GetMapping("/{serviceId}/reviews")
-    public ResponseEntity<ApiResponse<List<ReviewResponse>>> getReviewsForService(@PathVariable UUID serviceId) {
-        List<ReviewResponse> data = reviewService.getReviewsForService(serviceId);
+    public ResponseEntity<ApiResponse<PagedResponse<ReviewResponse>>> getReviewsForService(@PathVariable UUID serviceId, Pageable pageable) {
+        Page<ReviewResponse> reviewPage = reviewService.getReviewsForService(serviceId, pageable);
+        PagedResponse<ReviewResponse> data = PagedResponse.from(reviewPage);
         return ResponseEntity.ok(ApiResponse.success(data, "Service reviews retrieved successfully"));
     }
 
