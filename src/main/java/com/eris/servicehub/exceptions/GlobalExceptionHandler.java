@@ -1,7 +1,6 @@
 package com.eris.servicehub.exceptions;
 
 import com.eris.servicehub.dtos.common.ApiResponse;
-import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
