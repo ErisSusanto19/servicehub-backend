@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Set;
 
 @Component
+@org.springframework.context.annotation.Profile("!test")
 public class DataLoader implements CommandLineRunner {
 
     @Autowired

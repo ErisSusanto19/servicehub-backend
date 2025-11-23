@@ -6,8 +6,10 @@ import com.midtrans.service.impl.MidtransSnapApiImpl;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
 @Configuration
+@Profile("!test")
 public class MidtransConfig {
 
     @Value("${midtrans.server.key}")
@@ -20,16 +22,12 @@ public class MidtransConfig {
     private boolean isProduction;
 
     @Bean
-    public Config midtransConfiguration() {
-        return Config.builder()
+    public MidtransSnapApi midtransSnapApi() {
+        Config config = Config.builder()
                 .setServerKey(serverKey)
                 .setClientKey(clientKey)
                 .setIsProduction(isProduction)
                 .build();
-    }
-
-    @Bean
-    public MidtransSnapApi midtransSnapApi(Config config) {
         return new MidtransSnapApiImpl(config);
     }
 }
