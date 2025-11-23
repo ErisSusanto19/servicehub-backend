@@ -1,23 +1,30 @@
 package com.eris.servicehub.controllers;
 
 import com.eris.servicehub.AbstractIntegrationTest;
+import com.eris.servicehub.config.TestConfig;
 import com.eris.servicehub.dtos.auth.AuthResponse;
 import com.eris.servicehub.dtos.auth.LoginRequest;
 import com.eris.servicehub.dtos.auth.RegisterRequest;
 import com.eris.servicehub.dtos.common.ApiResponse;
+import com.eris.servicehub.entities.Role;
 import com.eris.servicehub.entities.User;
+import com.eris.servicehub.repositories.RoleRepository;
 import com.eris.servicehub.repositories.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ActiveProfiles;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@ActiveProfiles("test")
+@Import(TestConfig.class)
 public class AuthControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
@@ -26,9 +33,15 @@ public class AuthControllerIntegrationTest extends AbstractIntegrationTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private RoleRepository roleRepository;
+
     @BeforeEach
     void setUp() {
         userRepository.deleteAll();
+        roleRepository.deleteAll();
+
+        roleRepository.save(Role.builder().name("CUSTOMER").build());
     }
 
     @Test
@@ -80,7 +93,7 @@ public class AuthControllerIntegrationTest extends AbstractIntegrationTest {
         RegisterRequest duplicateRequest = new RegisterRequest("User B", "duplicate@example.com", "pass2");
         ResponseEntity<ApiResponse> response = restTemplate.postForEntity("/auth/register", duplicateRequest, ApiResponse.class);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
 
     }
 }

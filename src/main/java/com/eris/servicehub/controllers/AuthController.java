@@ -4,7 +4,7 @@ import com.eris.servicehub.dtos.auth.AuthResponse;
 import com.eris.servicehub.dtos.auth.LoginRequest;
 import com.eris.servicehub.dtos.auth.RegisterRequest;
 import com.eris.servicehub.dtos.common.ApiResponse;
-import com.eris.servicehub.services.AuthService;
+import com.eris.servicehub.services.auth.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

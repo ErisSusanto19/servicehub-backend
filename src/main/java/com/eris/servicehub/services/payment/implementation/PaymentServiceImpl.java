@@ -16,6 +16,7 @@ import com.midtrans.service.MidtransSnapApi;
 import com.midtrans.service.impl.MidtransCoreApiImpl;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,12 +38,12 @@ public class PaymentServiceImpl implements PaymentService {
             MidtransSnapApi midtransSnapApi,
             OrderRepository orderRepository,
             NotificationService notificationService,
-            Config midtransConfig
+            @Value("${midtrans.server.key}") String serverKey
     ) {
         this.midtransSnapApi = midtransSnapApi;
         this.orderRepository = orderRepository;
         this.notificationService = notificationService;
-        this.serverKey = midtransConfig.getServerKey();
+        this.serverKey = serverKey;
     }
 
     @Override

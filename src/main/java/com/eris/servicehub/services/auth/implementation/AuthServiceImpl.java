@@ -17,7 +17,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -40,6 +42,7 @@ public class AuthServiceImpl implements AuthService {
     private JwtService jwtService;
 
     @Override
+    @Transactional
     public AuthResponse register(RegisterRequest request) {
 
         Role customerRole = roleRepository.findByName("CUSTOMER")
@@ -49,19 +52,22 @@ public class AuthServiceImpl implements AuthService {
                 .name(request.name())
                 .email(request.email())
                 .password(passwordEncoder.encode(request.password()))
-                .roles(Set.of(customerRole))
+                .roles(new HashSet<>(Set.of(customerRole)))
+                .enabled(true)
                 .build();
 
         Profile newProfile = new Profile();
         newProfile.setUser(userEntity);
         userEntity.setProfile(newProfile);
 
+        User savedUser = userRepository.save(userEntity);
+
         userRepository.save(userEntity);
 
         var userDetails = new org.springframework.security.core.userdetails.User(
-                userEntity.getEmail(),
-                userEntity.getPassword(),
-                userEntity.getRoles().stream()
+                savedUser.getEmail(),
+                savedUser.getPassword(),
+                savedUser.getRoles().stream()
                         .map(role -> new SimpleGrantedAuthority(role.getName()))
                         .collect(Collectors.toList())
         );
