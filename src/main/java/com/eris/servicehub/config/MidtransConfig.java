@@ -20,13 +20,16 @@ public class MidtransConfig {
     private boolean isProduction;
 
     @Bean
-    public MidtransSnapApi midtransSnapApi() {
-        return new MidtransSnapApiImpl(
-                Config.builder()
-                        .setServerKey(serverKey)
-                        .setClientKey(clientKey)
-                        .setIsProduction(isProduction)
-                        .build()
-        );
+    public Config midtransConfiguration() {
+        return Config.builder()
+                .setServerKey(serverKey)
+                .setClientKey(clientKey)
+                .setIsProduction(isProduction)
+                .build();
+    }
+
+    @Bean
+    public MidtransSnapApi midtransSnapApi(Config config) {
+        return new MidtransSnapApiImpl(config);
     }
 }
