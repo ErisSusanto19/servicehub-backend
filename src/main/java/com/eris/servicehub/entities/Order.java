@@ -53,14 +53,17 @@ public class Order {
     @Enumerated(EnumType.STRING)
     @Column(name = "payment_status", nullable = false)
     @ColumnDefault("'UNPAID'")
+    @Builder.Default
     private PaymentStatus paymentStatus = PaymentStatus.UNPAID;
 
     @Column(name = "platform_fee", nullable = false)
     @ColumnDefault("0.00")
+    @Builder.Default
     private BigDecimal platformFee = BigDecimal.ZERO;
 
     @Column(name = "net_payout", nullable = false)
     @ColumnDefault("0.00")
+    @Builder.Default
     private BigDecimal netPayout = BigDecimal.ZERO;
 
     @Column(name = "payment_method")

@@ -65,6 +65,9 @@ public class OrderServiceImpl implements OrderService {
                 .customer(customer)
                 .totalPrice(totalPrice)
                 .status(OrderStatus.PENDING)
+                .paymentStatus(PaymentStatus.UNPAID)
+                .platformFee(BigDecimal.ZERO)
+                .netPayout(BigDecimal.ZERO)
                 .build();
 
         List<OrderItem> orderItems = services.stream()
