@@ -12,6 +12,7 @@ import com.eris.servicehub.repositories.specifications.ServiceSpecification;
 import com.eris.servicehub.services.service.ServiceService;
 import com.eris.servicehub.services.storage.StorageService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -99,7 +100,9 @@ public class ServiceServiceImpl implements ServiceService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "services", key = "#serviceId")
     public ServiceResponse getServiceById(UUID serviceId) {
+        System.out.println("Fetching service " + serviceId + " from database...");
         Service service = serviceRepository.findById(serviceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Service not found with id: " + serviceId));
         return mapToResponse(service);
