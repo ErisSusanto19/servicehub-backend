@@ -12,6 +12,8 @@ import com.eris.servicehub.repositories.specifications.ServiceSpecification;
 import com.eris.servicehub.services.service.ServiceService;
 import com.eris.servicehub.services.storage.StorageService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -129,7 +131,9 @@ public class ServiceServiceImpl implements ServiceService {
 
     @Override
     @Transactional
+    @CachePut(value = "services", key = "#serviceId")
     public ServiceResponse updateService(UUID serviceId, ServiceRequest request) {
+        System.out.println("Updating service " + serviceId + " in database and cache...");
         Service service = serviceRepository.findById(serviceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Service not found with id: " + serviceId));
         Category category = categoryRepository.findById(request.getCategoryId())
@@ -146,7 +150,9 @@ public class ServiceServiceImpl implements ServiceService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "services", key = "#serviceId")
     public void deleteService(UUID serviceId) {
+        System.out.println("Deleting service " + serviceId + " from database and cache...");
         if (!serviceRepository.existsById(serviceId)) {
             throw new ResourceNotFoundException("Service not found with id: " + serviceId);
         }
