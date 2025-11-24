@@ -2,13 +2,17 @@ package com.eris.servicehub.services.order.implementation;
 
 import com.eris.servicehub.dtos.order.OrderRequest;
 import com.eris.servicehub.dtos.order.OrderResponse;
+import com.eris.servicehub.dtos.order.UpdateOrderStatusRequest;
 import com.eris.servicehub.entities.Category;
+import com.eris.servicehub.entities.Order;
 import com.eris.servicehub.entities.Service;
 import com.eris.servicehub.entities.User;
+import com.eris.servicehub.enums.OrderStatus;
 import com.eris.servicehub.repositories.OrderRepository;
 import com.eris.servicehub.repositories.ServiceRepository;
 import com.eris.servicehub.repositories.UserRepository;
 import com.eris.servicehub.services.notification.NotificationService;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -26,6 +30,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -84,5 +89,58 @@ public class OrderServiceImplTest {
         assertThat(capturedOrder.getCustomer()).isEqualTo(customer);
         assertThat(capturedOrder.getTotalPrice()).isEqualByComparingTo("200.00");
         assertThat(capturedOrder.getOrderItems()).hasSize(2);
+    }
+
+    @Test
+    @DisplayName("updateOrderStatus should succeed for valid transition (ACCEPTED to IN_PROGRESS)")
+    void updateOrderStatus_withValidTransition_shouldUpdateStatus() {
+        // --- ARRANGE ---
+        UUID orderId = UUID.randomUUID();
+        User customer = User.builder().id(UUID.randomUUID()).build();
+        Order existingOrder = Order.builder()
+                .id(orderId)
+                .status(OrderStatus.ACCEPTED)
+                .customer(customer)
+                .build();
+
+        UpdateOrderStatusRequest request = new UpdateOrderStatusRequest(OrderStatus.IN_PROGRESS);
+
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(existingOrder));
+        when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // --- ACT ---
+        orderServiceImpl.updateOrderStatus(orderId, request);
+
+        // --- ASSERT ---
+        ArgumentCaptor<Order> orderCaptor = ArgumentCaptor.forClass(Order.class);
+
+        verify(orderRepository, times(1)).save(orderCaptor.capture());
+
+        Order savedOrder = orderCaptor.getValue();
+        assertThat(savedOrder.getStatus()).isEqualTo(OrderStatus.IN_PROGRESS);
+    }
+
+    @Test
+    @DisplayName("updateOrderStatus should throw exception for invalid transition (PENDING to COMPLETED)")
+    void updateOrderStatus_withInvalidTransition_shouldThrowException() {
+        // --- ARRANGE ---
+        UUID orderId = UUID.randomUUID();
+        Order existingOrder = Order.builder()
+                .id(orderId)
+                .status(OrderStatus.PENDING)
+                .build();
+
+        UpdateOrderStatusRequest request = new UpdateOrderStatusRequest(OrderStatus.COMPLETED); // Status tujuan yang tidak valid
+
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(existingOrder));
+
+        // --- ACT & ASSERT ---
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            orderServiceImpl.updateOrderStatus(orderId, request);
+        });
+
+        assertThat(exception.getMessage()).contains("From PENDING, provider can only move to ACCEPTED or REJECTED.");
+
+        verify(orderRepository, never()).save(any(Order.class));
     }
 }
