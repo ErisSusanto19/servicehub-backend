@@ -7,6 +7,7 @@ import com.eris.servicehub.exceptions.ResourceNotFoundException;
 import com.eris.servicehub.repositories.CategoryRepository;
 import com.eris.servicehub.services.category.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,7 +31,9 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable("categories")
     public List<CategoryResponse> getAllCategories() {
+        System.out.println("Fetching categories from database...");
         return categoryRepository.findAll().stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());

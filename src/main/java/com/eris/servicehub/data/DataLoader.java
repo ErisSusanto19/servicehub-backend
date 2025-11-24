@@ -53,6 +53,7 @@ public class DataLoader implements CommandLineRunner {
                     .email(adminEmail)
                     .password(passwordEncoder.encode(adminPassword))
                     .roles(Set.of(adminRole))
+                    .enabled(true)
                     .build();
 
             Profile adminProfile = new Profile();
