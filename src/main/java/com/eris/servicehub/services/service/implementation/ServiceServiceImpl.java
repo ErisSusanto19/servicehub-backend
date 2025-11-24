@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -84,7 +85,9 @@ public class ServiceServiceImpl implements ServiceService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable("services_list")
     public Page<ServiceResponse> getAllServices(Pageable pageable, UUID categoryId, String searchQuery) {
+        System.out.println("Fetching services list from database...");
         Specification<Service> spec = Specification.anyOf();
 
         if (categoryId != null) {
@@ -112,6 +115,7 @@ public class ServiceServiceImpl implements ServiceService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "services_list", allEntries = true)
     public ServiceResponse createService(ServiceRequest request) {
         User provider = getCurrentUser();
         Category category = categoryRepository.findById(request.getCategoryId())
@@ -131,7 +135,10 @@ public class ServiceServiceImpl implements ServiceService {
 
     @Override
     @Transactional
-    @CachePut(value = "services", key = "#serviceId")
+    @Caching(
+            put = { @CachePut(value = "services", key = "#serviceId") },
+            evict = { @CacheEvict(value = "services_list", allEntries = true) }
+    )
     public ServiceResponse updateService(UUID serviceId, ServiceRequest request) {
         System.out.println("Updating service " + serviceId + " in database and cache...");
         Service service = serviceRepository.findById(serviceId)
@@ -150,7 +157,12 @@ public class ServiceServiceImpl implements ServiceService {
 
     @Override
     @Transactional
-    @CacheEvict(value = "services", key = "#serviceId")
+    @Caching(
+            evict = {
+                    @CacheEvict(value = "services", key = "#serviceId"),
+                    @CacheEvict(value = "services_list", allEntries = true)
+            }
+    )
     public void deleteService(UUID serviceId) {
         System.out.println("Deleting service " + serviceId + " from database and cache...");
         if (!serviceRepository.existsById(serviceId)) {
