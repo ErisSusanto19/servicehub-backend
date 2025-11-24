@@ -1,7 +1,6 @@
 package com.eris.servicehub.config;
 
 import com.eris.servicehub.config.filter.JwtAuthenticationFilter;
-import com.eris.servicehub.services.user.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

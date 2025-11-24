@@ -3,6 +3,7 @@ package com.eris.servicehub.exceptions;
 import com.eris.servicehub.dtos.common.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -42,6 +43,18 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Object>> handleFileValidationException(FileValidationException ex) {
         ApiResponse<Object> response = ApiResponse.error(ex.getMessage());
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(DataAuthorizationException.class)
+    public ResponseEntity<ApiResponse<Object>> handleDataAuthorizationException(DataAuthorizationException ex) {
+        ApiResponse<Object> response = ApiResponse.error(ex.getMessage());
+        return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiResponse<Object>> handleAccessDeniedException(AccessDeniedException ex) {
+        ApiResponse<Object> response = ApiResponse.error("Access Denied: You do not have the necessary permissions.");
+        return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(Exception.class)

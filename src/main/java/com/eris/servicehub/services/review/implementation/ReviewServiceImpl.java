@@ -4,6 +4,7 @@ import com.eris.servicehub.dtos.review.ReviewRequest;
 import com.eris.servicehub.dtos.review.ReviewResponse;
 import com.eris.servicehub.entities.*;
 import com.eris.servicehub.enums.OrderStatus;
+import com.eris.servicehub.exceptions.DataAuthorizationException;
 import com.eris.servicehub.exceptions.ResourceNotFoundException;
 import com.eris.servicehub.repositories.*;
 import com.eris.servicehub.services.notification.NotificationService;
@@ -11,6 +12,7 @@ import com.eris.servicehub.services.review.ReviewService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -48,7 +50,8 @@ public class ReviewServiceImpl implements ReviewService {
                 .orElseThrow(() -> new ResourceNotFoundException("Order item not found with id: " + orderItemId));
 
         if (!orderItem.getOrder().getCustomer().getId().equals(customer.getId())) {
-            throw new org.springframework.security.access.AccessDeniedException("You are not the customer for this order item.");
+//            throw new DataAuthorizationException("You are not the customer for this order item.");
+            throw new AccessDeniedException("You are not the customer for this order item.");
         }
 
         if (orderItem.getOrder().getStatus() != OrderStatus.COMPLETED) {
