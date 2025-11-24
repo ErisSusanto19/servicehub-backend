@@ -173,7 +173,12 @@ public class ServiceServiceImpl implements ServiceService {
 
     @Override
     @Transactional
+    @Caching(
+            put = { @CachePut(value = "services", key = "#serviceId") },
+            evict = { @CacheEvict(value = "services_list", allEntries = true) }
+    )
     public ServiceResponse addImageToService(UUID serviceId, MultipartFile file) {
+        System.out.println("Adding image to service " + serviceId + " and updating caches...");
         Service service = serviceRepository.findById(serviceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Service not found with id: " + serviceId));
 
@@ -192,7 +197,14 @@ public class ServiceServiceImpl implements ServiceService {
 
     @Override
     @Transactional
+    @Caching(
+            evict = {
+                    @CacheEvict(value = "services", key = "#serviceId"),
+                    @CacheEvict(value = "services_list", allEntries = true)
+            }
+    )
     public void deleteImageFromService(UUID serviceId, UUID imageId) {
+        System.out.println("Deleting image from service " + serviceId + " and clearing caches...");
         ServiceImage serviceImage = serviceImageRepository.findById(imageId)
                 .orElseThrow(() -> new ResourceNotFoundException("Image not found with id: " + imageId));
 
