@@ -1,5 +1,6 @@
 package com.eris.servicehub.services.profile;
 
+import com.eris.servicehub.dtos.profile.ProviderDashboardResponse;
 import com.eris.servicehub.dtos.profile.ProviderWalletResponse;
 import com.eris.servicehub.dtos.profile.UpdateProfileRequest;
 import com.eris.servicehub.dtos.profile.UserProfileResponse;
@@ -11,4 +12,5 @@ public interface ProfileService {
     UserProfileResponse becomeProvider();
     UserProfileResponse updateProfileImage(MultipartFile file);
     ProviderWalletResponse getProviderWallet();
+    ProviderDashboardResponse getProviderDashboard();
 }

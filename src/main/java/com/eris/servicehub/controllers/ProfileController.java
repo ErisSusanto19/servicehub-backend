@@ -3,6 +3,7 @@ package com.eris.servicehub.controllers;
 import com.eris.servicehub.dtos.common.ApiResponse;
 import com.eris.servicehub.dtos.common.PagedResponse;
 import com.eris.servicehub.dtos.payout.PayoutResponse;
+import com.eris.servicehub.dtos.profile.ProviderDashboardResponse;
 import com.eris.servicehub.dtos.profile.ProviderWalletResponse;
 import com.eris.servicehub.dtos.profile.UpdateProfileRequest;
 import com.eris.servicehub.dtos.profile.UserProfileResponse;
@@ -70,5 +71,12 @@ public class ProfileController {
         Page<PayoutResponse> payoutPage = payoutService.getMyPayoutHistory(pageable);
         PagedResponse<PayoutResponse> data = PagedResponse.from(payoutPage);
         return ResponseEntity.ok(ApiResponse.success(data, "Payout history retrieved successfully"));
+    }
+
+    @GetMapping("/me/dashboard")
+    @PreAuthorize("hasAuthority('PROVIDER')")
+    public ResponseEntity<ApiResponse<ProviderDashboardResponse>> getMyDashboard() {
+        ProviderDashboardResponse data = profileService.getProviderDashboard();
+        return ResponseEntity.ok(ApiResponse.success(data, "Provider dashboard retrieved successfully"));
     }
 }

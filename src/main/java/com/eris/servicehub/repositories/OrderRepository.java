@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -38,4 +39,13 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
     @Override
     @EntityGraph(attributePaths = {"orderItems", "orderItems.service"})
     Optional<Order> findById(UUID id);
+
+    @Query("SELECT COALESCE(SUM(o.totalPrice), 0) FROM Order o JOIN o.orderItems oi JOIN oi.service s WHERE s.provider.id = :providerId AND o.status = 'COMPLETED'")
+    BigDecimal findTotalGrossRevenueByProviderId(UUID providerId);
+
+    @Query("SELECT COALESCE(SUM(o.netPayout), 0) FROM Order o JOIN o.orderItems oi JOIN oi.service s WHERE s.provider.id = :providerId AND o.status = 'COMPLETED'")
+    BigDecimal findTotalNetRevenueByProviderId(UUID providerId);
+
+    @Query("SELECT COUNT(DISTINCT o.id) FROM Order o JOIN o.orderItems oi JOIN oi.service s WHERE s.provider.id = :providerId AND o.status = :status")
+    long countOrdersByProviderIdAndStatus(UUID providerId, OrderStatus status);
 }

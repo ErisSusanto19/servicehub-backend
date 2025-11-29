@@ -1,5 +1,6 @@
 package com.eris.servicehub.services.profile.implementation;
 
+import com.eris.servicehub.dtos.profile.ProviderDashboardResponse;
 import com.eris.servicehub.dtos.profile.ProviderWalletResponse;
 import com.eris.servicehub.dtos.profile.UpdateProfileRequest;
 import com.eris.servicehub.dtos.profile.UserProfileResponse;
@@ -7,9 +8,11 @@ import com.eris.servicehub.entities.Order;
 import com.eris.servicehub.entities.Profile;
 import com.eris.servicehub.entities.Role;
 import com.eris.servicehub.entities.User;
+import com.eris.servicehub.enums.OrderStatus;
 import com.eris.servicehub.enums.PaymentStatus;
 import com.eris.servicehub.exceptions.ResourceNotFoundException;
 import com.eris.servicehub.repositories.OrderRepository;
+import com.eris.servicehub.repositories.ReviewRepository;
 import com.eris.servicehub.repositories.RoleRepository;
 import com.eris.servicehub.repositories.UserRepository;
 import com.eris.servicehub.services.profile.ProfileService;
@@ -23,6 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,6 +43,9 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Autowired
     private OrderRepository orderRepository;
+
+    @Autowired
+    private ReviewRepository reviewRepository;
 
     private User getCurrentUser() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -167,6 +174,32 @@ public class ProfileServiceImpl implements ProfileService {
                 .totalNetRevenue(totalNetRevenue)
                 .pendingPayout(pendingPayout)
                 .recentTransactions(transactions)
+                .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ProviderDashboardResponse getProviderDashboard() {
+        User provider = getCurrentUser();
+        UUID providerId = provider.getId();
+
+        BigDecimal totalGrossRevenue = orderRepository.findTotalGrossRevenueByProviderId(providerId);
+        BigDecimal totalNetRevenue = orderRepository.findTotalNetRevenueByProviderId(providerId);
+
+        BigDecimal pendingPayout = BigDecimal.ZERO;
+
+        long activeOrdersCount = orderRepository.countOrdersByProviderIdAndStatus(providerId, OrderStatus.IN_PROGRESS);
+        long completedOrdersCount = orderRepository.countOrdersByProviderIdAndStatus(providerId, OrderStatus.COMPLETED);
+
+        Double averageRating = reviewRepository.findAverageRatingByProviderId(providerId);
+
+        return ProviderDashboardResponse.builder()
+                .totalGrossRevenue(totalGrossRevenue)
+                .totalNetRevenue(totalNetRevenue)
+                .pendingPayout(pendingPayout)
+                .activeOrdersCount(activeOrdersCount)
+                .completedOrdersCount(completedOrdersCount)
+                .averageRating(averageRating != null ? averageRating : 0.0)
                 .build();
     }
 }
