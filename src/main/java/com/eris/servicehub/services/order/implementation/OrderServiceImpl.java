@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +36,9 @@ public class OrderServiceImpl implements OrderService {
     @Autowired private ServiceRepository serviceRepository;
     @Autowired private UserRepository userRepository;
     @Autowired private NotificationService notificationService;
+
+    @Autowired
+    private KafkaTemplate<String, String> kafkaTemplate;
 
     @Value("${platform.fee.percentage}")
     private BigDecimal platformFeePercentage;
@@ -82,15 +86,20 @@ public class OrderServiceImpl implements OrderService {
 
         Order savedOrder = orderRepository.save(newOrder);
 
-        Set<User> providers = services.stream()
-                .map(Service::getProvider)
-                .collect(Collectors.toSet());
+//        Set<User> providers = services.stream()
+//                .map(Service::getProvider)
+//                .collect(Collectors.toSet());
+//
+//        for (User provider : providers) {
+//            String message = String.format("You have a new order #%s from %s.", savedOrder.getId().toString().substring(0, 8), customer.getName());
+//            String link = "/provider/orders/" + savedOrder.getId();
+//            notificationService.createNotification(provider, message, link);
+//        }
 
-        for (User provider : providers) {
-            String message = String.format("You have a new order #%s from %s.", savedOrder.getId().toString().substring(0, 8), customer.getName());
-            String link = "/provider/orders/" + savedOrder.getId();
-            notificationService.createNotification(provider, message, link);
-        }
+        String messagePayload = "{\"orderId\": \"" + savedOrder.getId().toString() + "\"}";
+        kafkaTemplate.send("order_created", messagePayload);
+
+        System.out.println("Sent order_created event for orderId: " + savedOrder.getId());
 
         return mapToResponse(savedOrder);
     }
